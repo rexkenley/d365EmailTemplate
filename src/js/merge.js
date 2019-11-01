@@ -3,8 +3,8 @@ import HandlebarsIntl from "handlebars-intl";
 
 HandlebarsIntl.registerWith(Handlebars);
 
-export function merge(source, data) {
-  if (!source || !data) return;
+export default function merge(source, data) {
+  if (!source || !data) return "";
 
   const template = Handlebars.compile(source);
 
