@@ -1,3 +1,5 @@
 module.exports = {
-  preset: "jest-runner-prettier"
+  transform: {
+    "^.+\\.jsx?$": ["babel-jest", { presets: ["@babel/preset-env"] }]
+  }
 };

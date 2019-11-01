@@ -1,9 +1,12 @@
 import Handlebars from "handlebars";
+import HandlebarsIntl from "handlebars-intl";
 
-let _template;
+HandlebarsIntl.registerWith(Handlebars);
 
 export function merge(source, data) {
-  _template = Handlebars.compile(source);
+  if (!source || !data) return;
 
-  return _template(data);
+  const template = Handlebars.compile(source);
+
+  return template(data);
 }
