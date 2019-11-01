@@ -12,7 +12,8 @@
     "buildPrdForm": "npx webpack --config webpack/config.prd.form.js",
     "//d365EmailTemplate": "*****************************************************************",
     "build:dev": "%npm_package_scripts_buildDevForm% src\\js\\.js -o dist\\.js",
-    "build:prd": "%npm_package_scripts_buildPrdForm% src\\js\\.js -o dist\\.js"
+    "build:prd": "%npm_package_scripts_buildPrdForm% src\\js\\.js -o dist\\.js",
+    "test": "npx jest --verbose ./__test__"
   },
   "keywords": [
     "d365",
@@ -45,6 +46,8 @@
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
     "eslint": "^6.6.0",
+    "jest": "^24.9.0",
+    "jest-runner-prettier": "^0.3.1",
     "prettier": "^1.18.2",
     "webpack-cli": "^3.3.9"
   }
