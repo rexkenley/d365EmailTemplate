@@ -1,13 +1,29 @@
 import "react-quill/dist/quill.snow.css";
 import "../css/fonts.css";
 
+import { get } from "lodash";
 import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import ReactQuill from "react-quill";
-
 import { Fabric } from "office-ui-fabric-react/lib/Fabric";
 import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
+import {
+  Dialog,
+  DialogType,
+  DialogFooter
+} from "office-ui-fabric-react/lib/Dialog";
+import { TextField } from "office-ui-fabric-react/lib/TextField";
+import {
+  PrimaryButton,
+  DefaultButton
+} from "office-ui-fabric-react/lib/Button";
 
-const { Quill } = ReactQuill,
+import { getEntityData, formatObject, saveEntityData } from "./../js/d365ce";
+import merge from "../js/merge";
+import store, { setEntity, setTemplate, getTemplates } from "../js/store";
+
+const editorRef = React.createRef(),
+  { Quill } = ReactQuill,
   Font = Quill.import("formats/font"),
   Size = Quill.import("formats/size");
 
@@ -30,34 +46,99 @@ Quill.register(Font, true);
 Size.whitelist = ["extra-small", "small", "medium", "large"];
 Quill.register(Size, true);
 
-const getItems = meta => {
-    const subMenuProps = {
-        items: Object.keys(meta).map(k => ({
-          key: meta[k].metadataId,
-          text: meta[k].displayName,
+const getItems = (meta, entity, templates) => {
+    const dispatch = useDispatch(),
+      smpTemplateItems = [
+        {
+          key: "newTemplate",
+          text: "New Template",
+          iconProps: { iconName: "WebTemplate" },
           onClick: () => {
-            console.log(k);
+            dispatch(setTemplate({ subject: "" }));
           }
-        }))
+        }
+      ];
+
+    if (entity) {
+      templates
+        .filter(t => t.subject.startsWith(`d365EmailTemplate:${entity}:`))
+        .forEach(t => {
+          smpTemplateItems.push({
+            key: t.subject,
+            text: t.subject.replace(`d365EmailTemplate:${entity}:`, ""),
+            iconProps: { iconName: "QuickNote" },
+            onClick: () => {
+              const { annotationid: id, subject, notetext } = t;
+
+              dispatch(
+                setTemplate({
+                  id,
+                  subject,
+                  notetext
+                })
+              );
+            }
+          });
+        });
+    }
+
+    const smpEntity = {
+        items: Object.keys(meta)
+          .filter(k => k !== "annotation")
+          .map(k => ({
+            key: k,
+            text: meta[k].displayName,
+            onClick: () => {
+              dispatch(setEntity(k));
+            }
+          }))
+      },
+      smpTemplate = {
+        items: smpTemplateItems
       },
       cbItems = [
         {
           key: "entity",
           text: "Entity",
-          iconProps: { iconName: "FileTemplate" },
-          subMenuProps
+          iconProps: { iconName: "FolderList" },
+          subMenuProps: smpEntity
         },
         {
-          key: "new",
-          text: "New",
+          key: "templates",
+          text: "Templates",
           iconProps: { iconName: "FileTemplate" },
-          onClick: () => {}
+          subMenuProps: smpTemplate
         },
         {
           key: "save",
           text: "Save",
           iconProps: { iconName: "SaveTemplate" },
-          onClick: () => {}
+          onClick: async () => {
+            const { template } = store.getState();
+
+            if (!template || !template.subject) return;
+
+            template.notetext = editorRef.current.getEditorContents();
+
+            await saveEntityData("annotation", template);
+            dispatch(setTemplate(template));
+            dispatch(getTemplates());
+          }
+        },
+        {
+          key: "merge",
+          text: "Merge",
+          iconProps: { iconName: "Merge" },
+          onClick: async () => {
+            const result = await getEntityData(
+                "accounts",
+                "3CA3B8D2-034B-E911-A82F-000D3A17CE77"
+              ),
+              data = formatObject(result, true),
+              html = merge(editorRef.current.getEditorContents(), data);
+
+            console.log(html);
+          }
         }
       ];
 
@@ -94,19 +175,59 @@ const getItems = meta => {
     "image",
     "video"
   ],
-  Editor = ({ meta }) => {
-    const [text, setText] = useState(""),
-      [selectedEntity, setSelectedEntity] = useState("");
+  Editor = () => {
+    const [templateName, setTemplateName] = useState(""),
+      dispatch = useDispatch(),
+      meta = useSelector(state => state.meta),
+      template = useSelector(state => state.template),
+      templates = useSelector(state => state.templates),
+      entity = useSelector(state => state.entity),
+      dismiss = () => {
+        dispatch(setTemplate({}));
+        setTemplateName("");
+      };
 
     return (
       <Fabric>
-        <CommandBar items={getItems(meta)} />
+        <CommandBar items={getItems(meta, entity, templates)} />
         <ReactQuill
+          ref={editorRef}
           modules={modules}
           formats={formats}
-          value={text}
-          onChange={value => setText(value)}
+          value={get(template, "notetext", "")}
         />
+        <Dialog
+          hidden={!entity || !template || template.subject}
+          dialogContentProps={{
+            type: DialogType.normal,
+            title: "New Template"
+          }}
+          onDismiss={dismiss}
+        >
+          <TextField
+            placeholder="Please enter template name"
+            onChange={(ev, value) => {
+              setTemplateName(value);
+            }}
+          />
+          <DialogFooter>
+            <PrimaryButton
+              onClick={() => {
+                dispatch(
+                  setTemplate({
+                    id: "",
+                    subject: `d365EmailTemplate:${entity}:${templateName}`,
+                    notetext: ""
+                  })
+                );
+
+                setTemplateName("");
+              }}
+              text="Ok"
+            />
+            <DefaultButton onClick={dismiss} text="Cancel" />
+          </DialogFooter>
+        </Dialog>
       </Fabric>
     );
   };

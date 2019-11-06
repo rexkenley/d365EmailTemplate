@@ -1,21 +1,20 @@
 /* global Xrm */
 import { get } from "lodash";
-import { is } from "@babel/types";
 
-const { getGlobalContext } = get(window, "Xrm.Utility", {}),
-  headers = {
+const headers = {
     "OData-MaxVersion": "4.0",
     "OData-Version": "4.0",
     Accept: "application/json",
     "Content-Type": "application/json; charset=utf-8",
     Prefer: `odata.include-annotations="*"` // eslint-disable-line
-  };
+  },
+  apiVersion = "v9.1";
 
 export async function getMetaData(...entities) {
   try {
     if (!entities || !entities.length) return [];
 
-    const { getClientUrl } = getGlobalContext(),
+    const { getClientUrl } = Xrm.Utility.getGlobalContext(),
       metas = {},
       entitySetNames = {};
 
@@ -23,7 +22,7 @@ export async function getMetaData(...entities) {
     for (const e of entities) {
       // eslint-disable-next-line
       const result = await fetch(
-          `${getClientUrl()}/api/data/v9.1/EntityDefinitions(LogicalName='${e}')` +
+          `${getClientUrl()}/api/data/${apiVersion}/EntityDefinitions(LogicalName='${e}')` +
             "?$select=LogicalName,DisplayName,EntitySetName&$expand=Attributes($select=LogicalName,DisplayName,AttributeType;$filter=IsValidForRead eq true)",
           {
             method: "GET",
@@ -55,6 +54,39 @@ export async function getMetaData(...entities) {
     }
 
     return metas;
+  } catch (e) {
+    console.error(e.message || e);
+    return null;
+  }
+}
+
+export async function getEntityData(logicalName, id) {
+  try {
+    const result = await Xrm.WebApi.retrieveRecord(
+      logicalName,
+      id.toLowerCase()
+    );
+
+    return result;
+  } catch (e) {
+    console.error(e.message || e);
+    return null;
+  }
+}
+
+export async function saveEntityData(logicalName, entity) {
+  try {
+    const { createRecord, updateRecord } = Xrm.WebApi,
+      { id, ...x } = entity;
+    let result;
+
+    if (entity.id) {
+      result = await updateRecord(logicalName, id, { ...x });
+      return entity;
+    }
+
+    result = await createRecord(logicalName, { ...x });
+    return { ...x, id: result.id };
   } catch (e) {
     console.error(e.message || e);
     return null;
@@ -122,14 +154,23 @@ export function formatObject(obj, isFormattedOnly = false) {
   }
 }
 
-export async function getEntityData(logicalName, id) {
+export async function getMultipleData(oData) {
   try {
-    const result = await Xrm.WebApi.retrieveRecord(
-      logicalName,
-      id.toLowerCase()
-    );
+    if (!oData) return null;
 
-    return result;
+    // eslint-disable-next-line
+    const { getClientUrl } = Xrm.Utility.getGlobalContext(),
+      result = await fetch(
+        `${getClientUrl()}/api/data/${apiVersion}/${oData}`,
+        {
+          method: "GET",
+          headers
+        }
+      ),
+      json = result && (await result.json()),
+      data = json.value.map(r => formatObject(r));
+
+    return data;
   } catch (e) {
     console.error(e.message || e);
     return null;

@@ -1,24 +1,34 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
 import { initializeIcons } from "@uifabric/icons";
-import { getMetaData, getEntityData } from "./d365ce";
+import { getMetaData } from "./d365ce";
+import store, { setMeta, getTemplates } from "./store";
 import Editor from "../jsx/editor";
 
-getMetaData(
-  "account",
-  "contact",
-  "incident",
-  "invoice",
-  "lead",
-  "opportunity",
-  "quote",
-  "salesorder"
-).then(meta => {
-  initializeIcons();
-  ReactDOM.render(
-    <Editor meta={meta} />,
-    document.getElementById("d365EmailTemplate")
+initializeIcons();
+const run = async () => {
+  const meta = await getMetaData(
+    "account",
+    "contact",
+    "incident",
+    "invoice",
+    "lead",
+    "opportunity",
+    "quote",
+    "salesorder",
+    "annotation"
   );
 
-  getEntityData("accounts", "3CA3B8D2-034B-E911-A82F-000D3A17CE77");
-});
+  store.dispatch(setMeta(meta));
+  store.dispatch(getTemplates());
+
+  ReactDOM.render(
+    <Provider store={store}>
+      <Editor />
+    </Provider>,
+    document.getElementById("d365EmailTemplate")
+  );
+};
+
+run();
