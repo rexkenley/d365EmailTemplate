@@ -17,7 +17,8 @@ const run = async () => {
     "opportunity",
     "quote",
     "salesorder",
-    "annotation"
+    "annotation",
+    "email"
   );
 
   store.dispatch(setMeta(meta));

@@ -18,7 +18,12 @@ import {
   DefaultButton
 } from "office-ui-fabric-react/lib/Button";
 
-import { getEntityData, formatObject, saveEntityData } from "./../js/d365ce";
+import {
+  getEntityData,
+  formatObject,
+  saveEntityData,
+  FormatValue
+} from "./../js/d365ce";
 import merge from "../js/merge";
 import store, { setEntity, setTemplate, getTemplates } from "../js/store";
 
@@ -82,9 +87,16 @@ const getItems = (meta, entity, templates) => {
         });
     }
 
-    const smpEntity = {
-        items: Object.keys(meta)
-          .filter(k => k !== "annotation")
+    const entityItems = [
+        {
+          key: "global",
+          text: "Global",
+          onClick: () => {
+            dispatch(setEntity(""));
+          }
+        },
+        ...Object.keys(meta)
+          .filter(k => k !== "annotation" && k !== "email")
           .map(k => ({
             key: k,
             text: meta[k].displayName,
@@ -92,6 +104,9 @@ const getItems = (meta, entity, templates) => {
               dispatch(setEntity(k));
             }
           }))
+      ],
+      smpEntity = {
+        items: entityItems
       },
       smpTemplate = {
         items: smpTemplateItems
@@ -100,7 +115,7 @@ const getItems = (meta, entity, templates) => {
         {
           key: "entity",
           text: "Entity",
-          iconProps: { iconName: "FolderList" },
+          iconProps: { iconName: "Product" },
           subMenuProps: smpEntity
         },
         {
@@ -130,17 +145,76 @@ const getItems = (meta, entity, templates) => {
           text: "Merge",
           iconProps: { iconName: "Merge" },
           onClick: async () => {
-            const result = await getEntityData(
+            const { template } = store.getState(),
+              result = await getEntityData(
                 "accounts",
                 "3CA3B8D2-034B-E911-A82F-000D3A17CE77"
               ),
-              data = formatObject(result, true),
-              html = merge(editorRef.current.getEditorContents(), data);
+              data = formatObject(result, FormatValue.formatOnly),
+              html = merge(template.notetext, data);
 
-            console.log(html);
+            saveEntityData("email", {
+              subject: template.subject,
+              description: html
+            });
           }
         }
       ];
+
+    if (meta && entity) {
+      cbItems.push({
+        key: "attribute",
+        text: "Attribute",
+        iconProps: { iconName: "ProductList" },
+        subMenuProps: {
+          items: meta[entity].attributes
+            .sort((a, b) => {
+              return (
+                (a.displayName < b.displayName && -1) ||
+                (a.displayName > b.displayName && 1) ||
+                0
+              );
+            })
+            .map(a => {
+              switch (a.attributeType) {
+                case "DateTime":
+                  return {
+                    key: a.logicalName,
+                    text: a.displayName,
+                    onClick: () => {}
+                  };
+                case "BigInt":
+                case "Money":
+                case "Integer":
+                case "Double":
+                case "Decimal":
+                  return {
+                    key: a.logicalName,
+                    text: a.displayName,
+                    onClick: () => {}
+                  };
+                default:
+                  return {
+                    key: a.logicalName,
+                    text: a.displayName,
+                    onClick: () => {
+                      const { template } = store.getState();
+
+                      if (!template) return;
+
+                      dispatch(
+                        setTemplate({
+                          ...template,
+                          notetext: `${template.notetext} {{${a.logicalName}}}`
+                        })
+                      );
+                    }
+                  };
+              }
+            })
+        }
+      });
+    }
 
     return cbItems;
   },

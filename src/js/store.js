@@ -12,6 +12,8 @@ function reducer(state, { type = "", payload = null }) {
       return { ...state, template: payload };
     case "SET_TEMPLATES":
       return { ...state, templates: payload };
+    case "SET_ATTRIBUTE":
+      return { ...state, attribute: payload };
 
     default:
       return state;
@@ -51,11 +53,18 @@ export function getTemplates() {
   };
 }
 
+export function setAttribute(attribute) {
+  return dispatch => {
+    dispatch({ type: "SET_ATTRIBUTE", payload: attribute });
+  };
+}
+
 const initialState = {
     meta: null,
     entity: "",
     template: null,
-    templates: null
+    templates: null,
+    attribute: ""
   },
   store = createStore(reducer, initialState, applyMiddleware(thunk));
 

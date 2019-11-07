@@ -23,7 +23,7 @@ export async function getMetaData(...entities) {
       // eslint-disable-next-line
       const result = await fetch(
           `${getClientUrl()}/api/data/${apiVersion}/EntityDefinitions(LogicalName='${e}')` +
-            "?$select=LogicalName,DisplayName,EntitySetName&$expand=Attributes($select=LogicalName,DisplayName,AttributeType;$filter=IsValidForRead eq true)",
+            "?$select=LogicalName,DisplayName,EntitySetName&$expand=Attributes($select=LogicalName,DisplayName,AttributeType;$filter=IsValidForForm eq true)",
           {
             method: "GET",
             headers
@@ -93,7 +93,9 @@ export async function saveEntityData(logicalName, entity) {
   }
 }
 
-export function formatObject(obj, isFormattedOnly = false) {
+export const FormatValue = { both: 0, formatOnly: 1, valueOnly: 2 };
+
+export function formatObject(obj, formatValue = FormatValue.both) {
   try {
     if (!obj) return null;
 
@@ -116,30 +118,40 @@ export function formatObject(obj, isFormattedOnly = false) {
       newObj = {};
 
     lookups.forEach(k => {
-      if (isFormattedOnly) {
-        newObj[k.substring(1).replace("_value", "")] =
-          obj[`${k}${formattedTag}`];
-      } else {
-        const newLookUp = {
-          id: obj[k],
-          formatted: obj[`${k}${formattedTag}`],
-          logicalName: obj[`${k}${lookupTag}`]
-        };
+      switch (formatValue) {
+        case FormatValue.formatOnly:
+          newObj[k.substring(1).replace("_value", "")] =
+            obj[`${k}${formattedTag}`];
+          break;
 
-        newObj[k.substring(1).replace("_value", "")] = newLookUp;
+        case FormatValue.valueOnly:
+          newObj[k.substring(1).replace("_value", "")] = obj[k];
+          break;
+
+        default:
+          newObj[k.substring(1).replace("_value", "")] = {
+            id: obj[k],
+            formatted: obj[`${k}${formattedTag}`],
+            logicalName: obj[`${k}${lookupTag}`]
+          };
       }
     });
 
     formatted.forEach(k => {
-      if (isFormattedOnly) {
-        newObj[k] = obj[`${k}${formattedTag}`];
-      } else {
-        const newFormatted = {
-          value: obj[k],
-          formatted: obj[`${k}${formattedTag}`]
-        };
+      switch (formatValue) {
+        case FormatValue.formatOnly:
+          newObj[k] = obj[`${k}${formattedTag}`];
+          break;
 
-        newObj[k] = newFormatted;
+        case FormatValue.valueOnly:
+          newObj[k] = obj[k];
+          break;
+
+        default:
+          newObj[k] = {
+            value: obj[k],
+            formatted: obj[`${k}${formattedTag}`]
+          };
       }
     });
 
