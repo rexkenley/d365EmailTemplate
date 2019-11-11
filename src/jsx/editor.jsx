@@ -25,7 +25,12 @@ import {
   FormatValue
 } from "./../js/d365ce";
 import merge from "../js/merge";
-import store, { setEntity, setTemplate, getTemplates } from "../js/store";
+import store, {
+  setEntity,
+  setTemplate,
+  getTemplates,
+  setAttribute
+} from "../js/store";
 
 const editorRef = React.createRef(),
   { Quill } = ReactQuill,
@@ -51,7 +56,7 @@ Quill.register(Font, true);
 Size.whitelist = ["extra-small", "small", "medium", "large"];
 Quill.register(Size, true);
 
-const getItems = (meta, entity, templates) => {
+const getItems = (meta, entity, templates, attribute) => {
     const dispatch = useDispatch(),
       smpTemplateItems = [
         {
@@ -150,7 +155,7 @@ const getItems = (meta, entity, templates) => {
                 "accounts",
                 "3CA3B8D2-034B-E911-A82F-000D3A17CE77"
               ),
-              data = formatObject(result, FormatValue.formatOnly),
+              data = formatObject(result),
               html = merge(template.notetext, data);
 
             saveEntityData("email", {
@@ -176,44 +181,119 @@ const getItems = (meta, entity, templates) => {
               );
             })
             .map(a => {
-              switch (a.attributeType) {
-                case "DateTime":
-                  return {
-                    key: a.logicalName,
-                    text: a.displayName,
-                    onClick: () => {}
-                  };
-                case "BigInt":
-                case "Money":
-                case "Integer":
-                case "Double":
-                case "Decimal":
-                  return {
-                    key: a.logicalName,
-                    text: a.displayName,
-                    onClick: () => {}
-                  };
-                default:
-                  return {
-                    key: a.logicalName,
-                    text: a.displayName,
-                    onClick: () => {
-                      const { template } = store.getState();
-
-                      if (!template) return;
-
-                      dispatch(
-                        setTemplate({
-                          ...template,
-                          notetext: `${template.notetext} {{${a.logicalName}}}`
-                        })
-                      );
-                    }
-                  };
+              if (a.attributeType === "DateTime") {
+                return {
+                  key: a.logicalName,
+                  text: a.displayName,
+                  onClick: () => {
+                    dispatch(setAttribute(a.logicalName));
+                  }
+                };
               }
+
+              return {
+                key: a.logicalName,
+                text: a.displayName,
+                onClick: () => {
+                  const { template } = store.getState(),
+                    useFormatted = [
+                      "BigInt",
+                      "Decimal",
+                      "Double",
+                      "Integer",
+                      "Boolean",
+                      "Customer",
+                      "Lookup",
+                      "Money",
+                      "Owner",
+                      "Picklist",
+                      "State",
+                      "Status"
+                    ].includes(a.attributeType);
+
+                  if (!template) return;
+
+                  dispatch(setAttribute(""));
+                  dispatch(
+                    setTemplate({
+                      ...template,
+                      notetext: `${template.notetext} {{${a.logicalName +
+                        (useFormatted ? ".formatted" : "")}}}`
+                    })
+                  );
+                }
+              };
             })
         }
       });
+    }
+
+    if (attribute) {
+      const { template } = store.getState(),
+        isDateTime =
+          meta[entity].attributes.find(a => a.logicalName === attribute)
+            .attributeType === "DateTime",
+        setNoteText = notetext => {
+          dispatch(setTemplate({ ...template, notetext }));
+        },
+        defaultItem = {
+          key: "default",
+          text: "Default",
+          onClick: () => {
+            setNoteText(`${template.notetext} {{${attribute}.formatted}}`);
+          }
+        };
+
+      if (isDateTime) {
+        const dtItems = [
+          defaultItem,
+          {
+            key: "toLong",
+            text: "Long Date",
+            onClick: () => {
+              setNoteText(
+                `${template.notetext} {{formatDate ${attribute}.value month="long" day="numeric" year="numeric"}}`
+              );
+            }
+          },
+          {
+            key: "toShort",
+            text: "Short Date",
+            onClick: () => {
+              setNoteText(
+                `${template.notetext} {{formatDate ${attribute}.value month="2-digit" day="2-digit" year="2-digit"}}`
+              );
+            }
+          },
+          {
+            key: "to12",
+            text: "12 Hours",
+            onClick: () => {
+              setNoteText(
+                `${template.notetext} {{formatTime ${attribute}.value hour12=true hour="numeric" minute="numeric"}}`
+              );
+            }
+          },
+          {
+            key: "to24",
+            text: "24 Hours",
+            onClick: () => {
+              setNoteText(
+                `${template.notetext} {{formatTime ${attribute}.value hour12=false hour="numeric" minute="numeric"}}`
+              );
+            }
+          }
+        ];
+
+        cbItems.push({
+          key: "format",
+          text: "Format",
+          iconProps: { iconName: "DateTime" },
+          subMenuProps: {
+            items: dtItems
+          }
+        });
+      }
     }
 
     return cbItems;
@@ -253,9 +333,10 @@ const getItems = (meta, entity, templates) => {
     const [templateName, setTemplateName] = useState(""),
       dispatch = useDispatch(),
       meta = useSelector(state => state.meta),
+      entity = useSelector(state => state.entity),
       template = useSelector(state => state.template),
       templates = useSelector(state => state.templates),
-      entity = useSelector(state => state.entity),
+      attribute = useSelector(state => state.attribute),
       dismiss = () => {
         dispatch(setTemplate({}));
         setTemplateName("");
@@ -263,7 +344,7 @@ const getItems = (meta, entity, templates) => {
 
     return (
       <Fabric>
-        <CommandBar items={getItems(meta, entity, templates)} />
+        <CommandBar items={getItems(meta, entity, templates, attribute)} />
         <ReactQuill
           ref={editorRef}
           modules={modules}

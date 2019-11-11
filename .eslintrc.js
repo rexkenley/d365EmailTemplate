@@ -31,6 +31,7 @@ module.exports = {
     "arrow-parens": ["off"],
     "object-curly-newline": ["off"],
     "nonblock-statement-body-position": ["off"],
-    "space-before-function-paren": ["off"]
+    "space-before-function-paren": ["off"],
+    "implicit-arrow-linebreak": ["off"]
   }
 };
