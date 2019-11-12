@@ -97,7 +97,7 @@ const getItems = (meta, entity, templates, attribute) => {
           key: "global",
           text: "Global",
           onClick: () => {
-            dispatch(setEntity(""));
+            dispatch(setEntity("global"));
           }
         },
         ...Object.keys(meta)
@@ -248,7 +248,7 @@ const getItems = (meta, entity, templates, attribute) => {
         const dtItems = [
           defaultItem,
           {
-            key: "toLong",
+            key: "longDate",
             text: "Long Date",
             onClick: () => {
               setNoteText(
@@ -257,7 +257,7 @@ const getItems = (meta, entity, templates, attribute) => {
             }
           },
           {
-            key: "toShort",
+            key: "shortDate",
             text: "Short Date",
             onClick: () => {
               setNoteText(
@@ -266,7 +266,7 @@ const getItems = (meta, entity, templates, attribute) => {
             }
           },
           {
-            key: "to12",
+            key: "hours12",
             text: "12 Hours",
             onClick: () => {
               setNoteText(
@@ -275,7 +275,7 @@ const getItems = (meta, entity, templates, attribute) => {
             }
           },
           {
-            key: "to24",
+            key: "hours24",
             text: "24 Hours",
             onClick: () => {
               setNoteText(

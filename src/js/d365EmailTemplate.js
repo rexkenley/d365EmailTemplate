@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 import { initializeIcons } from "@uifabric/icons";
 import { getMetaData } from "./d365ce";
-import store, { setMeta, getTemplates } from "./store";
+import store, { setMeta, getTemplates, setEntity } from "./store";
 import Editor from "../jsx/editor";
 
 initializeIcons();
@@ -23,6 +23,7 @@ const run = async () => {
 
   store.dispatch(setMeta(meta));
   store.dispatch(getTemplates());
+  store.dispatch(setEntity("global"));
 
   ReactDOM.render(
     <Provider store={store}>
