@@ -1,5 +1,5 @@
 import "react-quill/dist/quill.snow.css";
-import "../css/fonts.css";
+//import "../css/fonts.css";
 
 import { get } from "lodash";
 import React, { useState } from "react";
@@ -18,12 +18,7 @@ import {
   DefaultButton
 } from "office-ui-fabric-react/lib/Button";
 
-import {
-  getEntityData,
-  formatObject,
-  saveEntityData,
-  FormatValue
-} from "./../js/d365ce";
+import { getEntityData, formatObject, saveEntityData } from "./../js/d365ce";
 import merge from "../js/merge";
 import store, {
   setEntity,
@@ -34,27 +29,24 @@ import store, {
 
 const editorRef = React.createRef(),
   { Quill } = ReactQuill,
-  Font = Quill.import("formats/font"),
-  Size = Quill.import("formats/size");
+  Font = Quill.import("attributors/class/font");
+//Font = Quill.import("formats/font");
 
 Font.whitelist = [
   "arial",
+  "arial-black",
   "comic-sans",
   "courier-new",
+  "garamond",
   "georgia",
   "helvetica",
-  "lucida"
-  /*"arial-black",
+  "lucida",
+  "ms-gothic",
   "tahoma",
-  "verdana",
-  "garamond",
   "times-new-roman",
-  "ms-gothic"*/
+  "verdana"
 ];
 Quill.register(Font, true);
-
-Size.whitelist = ["extra-small", "small", "medium", "large"];
-Quill.register(Size, true);
 
 const getItems = (meta, entity, templates, attribute) => {
     const dispatch = useDispatch(),
@@ -69,7 +61,7 @@ const getItems = (meta, entity, templates, attribute) => {
         }
       ];
 
-    if (entity) {
+    if (entity && templates) {
       templates
         .filter(t => t.subject.startsWith(`d365EmailTemplate:${entity}:`))
         .forEach(t => {
@@ -101,7 +93,7 @@ const getItems = (meta, entity, templates, attribute) => {
           }
         },
         ...Object.keys(meta)
-          .filter(k => k !== "annotation" && k !== "email")
+          .filter(k => ["annotation", "email"].every(e => e !== k))
           .map(k => ({
             key: k,
             text: meta[k].displayName,
@@ -166,7 +158,7 @@ const getItems = (meta, entity, templates, attribute) => {
         }
       ];
 
-    if (meta && entity) {
+    if (meta && entity && entity !== "global") {
       cbItems.push({
         key: "attribute",
         text: "Attribute",
@@ -300,23 +292,28 @@ const getItems = (meta, entity, templates, attribute) => {
   },
   modules = {
     toolbar: [
-      [{ header: "1" }, { header: "2" }, { font: Font.whitelist }],
-      [{ size: Size.whitelist }],
-      ["bold", "italic", "underline", "strike", "blockquote"],
+      [{ font: Font.whitelist }],
+      [{ size: ["small", false, "large", "huge"] }],
+      [{ header: [1, 2, false] }],
+      ["bold", "italic", "underline", "strike"],
+      ["blockquote", "code-block"],
       [
         { list: "ordered" },
         { list: "bullet" },
         { indent: "-1" },
         { indent: "+1" }
       ],
+      [{ script: "sub" }, { script: "super" }],
+      [{ indent: "-1" }, { indent: "+1" }],
+      [{ direction: "rtl" }],
       ["link", "image", "video"],
       ["clean"]
     ]
   },
   formats = [
-    "header",
     "font",
     "size",
+    "header",
     "bold",
     "italic",
     "underline",
@@ -346,10 +343,11 @@ const getItems = (meta, entity, templates, attribute) => {
       <Fabric>
         <CommandBar items={getItems(meta, entity, templates, attribute)} />
         <ReactQuill
+          theme="snow"
           ref={editorRef}
           modules={modules}
           formats={formats}
-          value={get(template, "notetext", "")}
+          defaultValue={get(template, "notetext", "")}
         />
         <Dialog
           hidden={!entity || !template || template.subject}
