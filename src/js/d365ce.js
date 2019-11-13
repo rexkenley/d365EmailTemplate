@@ -88,7 +88,7 @@ export async function getEntityData(logicalName, id) {
 /**
  * Saves a single entity record
  * @param {string} logicalName
- * @param {string} entity
+ * @param {Object} entity
  * @return {Promise<Object>}
  */
 export async function saveEntityData(logicalName, entity) {

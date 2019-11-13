@@ -1,10 +1,12 @@
-import "react-quill/dist/quill.snow.css";
-import "../css/fonts.css";
+import "tinymce";
+import "tinymce/skins/ui/oxide/skin.min.css";
+import "tinymce/skins/ui/oxide/content.min.css";
+import "tinymce/skins/content/default/content.css";
+import "tinymce/themes/silver/theme.js";
 
 import { get } from "lodash";
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import ReactQuill from "react-quill";
 import { Fabric } from "office-ui-fabric-react/lib/Fabric";
 import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
 import {
@@ -17,6 +19,7 @@ import {
   PrimaryButton,
   DefaultButton
 } from "office-ui-fabric-react/lib/Button";
+import { Editor as TinyEditor } from "@tinymce/tinymce-react";
 
 import { getEntityData, formatObject, saveEntityData } from "./../js/d365ce";
 import merge from "../js/merge";
@@ -26,26 +29,6 @@ import store, {
   getTemplates,
   setAttribute
 } from "../js/store";
-
-const editorRef = React.createRef(),
-  { Quill } = ReactQuill,
-  Font = Quill.import("formats/font");
-
-Font.whitelist = [
-  "Arial",
-  "Arial-Black",
-  "Comic-Sans",
-  "Courier-New",
-  "garamond",
-  "Georgia",
-  "Helvetica",
-  "Lucida",
-  "ms-gothic",
-  "Tahoma",
-  "Times-New-Roman",
-  "Verdana"
-];
-Quill.register(Font, true);
 
 const getItems = (meta, entity, templates, attribute) => {
     const dispatch = useDispatch(),
@@ -129,7 +112,7 @@ const getItems = (meta, entity, templates, attribute) => {
 
             if (!template || !template.subject) return;
 
-            template.notetext = editorRef.current.getEditorContents();
+            template.notetext = tinyMCE.get()[0].getContent();
 
             await saveEntityData("annotation", template);
             dispatch(setTemplate(template));
@@ -289,42 +272,6 @@ const getItems = (meta, entity, templates, attribute) => {
 
     return cbItems;
   },
-  modules = {
-    toolbar: [
-      [{ font: Font.whitelist }],
-      [{ size: ["small", false, "large", "huge"] }],
-      [{ header: [1, 2, false] }],
-      ["bold", "italic", "underline", "strike"],
-      ["blockquote", "code-block"],
-      [
-        { list: "ordered" },
-        { list: "bullet" },
-        { indent: "-1" },
-        { indent: "+1" }
-      ],
-      [{ script: "sub" }, { script: "super" }],
-      [{ indent: "-1" }, { indent: "+1" }],
-      [{ direction: "rtl" }],
-      ["link", "image", "video"],
-      ["clean"]
-    ]
-  },
-  formats = [
-    "font",
-    "size",
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "blockquote",
-    "list",
-    "bullet",
-    "indent",
-    "link",
-    "image",
-    "video"
-  ],
   Editor = () => {
     const [templateName, setTemplateName] = useState(""),
       dispatch = useDispatch(),
@@ -341,12 +288,13 @@ const getItems = (meta, entity, templates, attribute) => {
     return (
       <Fabric>
         <CommandBar items={getItems(meta, entity, templates, attribute)} />
-        <ReactQuill
-          theme="snow"
-          ref={editorRef}
-          modules={modules}
-          formats={formats}
-          defaultValue={get(template, "notetext", "")}
+        <TinyEditor
+          init={{
+            height: window.innerHeight - 80,
+            width: window.innerWidth - 40
+          }}
+          toolbar=""
+          value={get(template, "notetext", "")}
         />
         <Dialog
           hidden={!entity || !template || template.subject}
@@ -354,6 +302,7 @@ const getItems = (meta, entity, templates, attribute) => {
             type: DialogType.normal,
             title: "New Template"
           }}
+          toolbar=""
           onDismiss={dismiss}
         >
           <TextField
