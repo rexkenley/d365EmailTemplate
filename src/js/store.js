@@ -2,6 +2,11 @@ import { createStore, applyMiddleware } from "redux";
 import thunk from "redux-thunk";
 import { getMultipleData } from "./d365ce";
 
+/**
+ * @param {Object} state
+ * @param {Object} param1
+ * @return {Object}
+ */
 function reducer(state, { type = "", payload = null }) {
   switch (type) {
     case "SET_META":
@@ -20,17 +25,30 @@ function reducer(state, { type = "", payload = null }) {
   }
 }
 
+/**
+ * Sets the Meta Object
+ * @param {Object} meta
+ */
 export function setMeta(meta) {
   return dispatch => {
     dispatch({ type: "SET_META", payload: meta });
   };
 }
 
+/**
+ * Sets the Entity String
+ * @param {string} entity
+ */
 export function setEntity(entity) {
   return dispatch => {
     dispatch({ type: "SET_ENTITY", payload: entity });
   };
 }
+
+/**
+ * Sets the current Template Object
+ * @param {Object} template
+ */
 
 export function setTemplate(template) {
   return dispatch => {
@@ -38,12 +56,19 @@ export function setTemplate(template) {
   };
 }
 
+/**
+ * Sets the Templates Array
+ * @param {Object[]} templates
+ */
 export function setTemplates(templates) {
   return dispatch => {
     dispatch({ type: "SET_TEMPLATES", payload: templates });
   };
 }
 
+/**
+ * Gets all of the Templates from Annotations
+ */
 export function getTemplates() {
   return async dispatch => {
     const templates = await getMultipleData(
@@ -53,12 +78,19 @@ export function getTemplates() {
   };
 }
 
+/**
+ * Sets the Attribute String
+ * @param {string} attribute
+ */
 export function setAttribute(attribute) {
   return dispatch => {
     dispatch({ type: "SET_ATTRIBUTE", payload: attribute });
   };
 }
 
+/**
+ * @const {Object}
+ */
 const initialState = {
     meta: null,
     entity: "",

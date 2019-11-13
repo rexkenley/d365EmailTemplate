@@ -19,7 +19,7 @@ module.exports = {
   plugins: ["react"],
   rules: {
     "linebreak-style": ["error", "windows"],
-    quotes: ["error", "double"],
+    quotes: ["error", "double", { allowTemplateLiterals: true }],
     "one-var": ["error", "consecutive"],
     camelcase: ["off"],
     "no-unused-expressions": ["warn"],

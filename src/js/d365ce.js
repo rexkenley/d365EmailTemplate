@@ -10,6 +10,11 @@ const headers = {
   },
   apiVersion = "v9.1";
 
+/**
+ * Gets the metadata of the listed entities
+ * @param  {...string} entities
+ * @return {Promise<Object>}
+ */
 export async function getMetaData(...entities) {
   try {
     if (!entities || !entities.length) return [];
@@ -60,6 +65,12 @@ export async function getMetaData(...entities) {
   }
 }
 
+/**
+ * Retrieves a single entity record
+ * @param {string} logicalName
+ * @param {string} id
+ * @return {Promise<Object>}
+ */
 export async function getEntityData(logicalName, id) {
   try {
     const result = await Xrm.WebApi.retrieveRecord(
@@ -74,6 +85,12 @@ export async function getEntityData(logicalName, id) {
   }
 }
 
+/**
+ * Saves a single entity record
+ * @param {string} logicalName
+ * @param {string} entity
+ * @return {Promise<Object>}
+ */
 export async function saveEntityData(logicalName, entity) {
   try {
     const { createRecord, updateRecord } = Xrm.WebApi,
@@ -93,8 +110,17 @@ export async function saveEntityData(logicalName, entity) {
   }
 }
 
+/**
+ * @const {Object}
+ */
 export const FormatValue = { both: 0, formatOnly: 1, valueOnly: 2 };
 
+/**
+ * Formats the object to a more standard format
+ * @param {Object} obj
+ * @param {number} formatValue
+ * @returns {Object}
+ */
 export function formatObject(obj, formatValue = FormatValue.both) {
   try {
     if (!obj) return null;
@@ -166,6 +192,11 @@ export function formatObject(obj, formatValue = FormatValue.both) {
   }
 }
 
+/**
+ * Gets multiple records based on odata
+ * @param {string} oData
+ * @return {Promise<Object[]>}
+ */
 export async function getMultipleData(oData) {
   try {
     if (!oData) return null;

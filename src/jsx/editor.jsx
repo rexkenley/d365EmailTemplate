@@ -1,5 +1,5 @@
 import "react-quill/dist/quill.snow.css";
-//import "../css/fonts.css";
+import "../css/fonts.css";
 
 import { get } from "lodash";
 import React, { useState } from "react";
@@ -29,22 +29,21 @@ import store, {
 
 const editorRef = React.createRef(),
   { Quill } = ReactQuill,
-  Font = Quill.import("attributors/class/font");
-//Font = Quill.import("formats/font");
+  Font = Quill.import("formats/font");
 
 Font.whitelist = [
-  "arial",
-  "arial-black",
-  "comic-sans",
-  "courier-new",
+  "Arial",
+  "Arial-Black",
+  "Comic-Sans",
+  "Courier-New",
   "garamond",
-  "georgia",
-  "helvetica",
-  "lucida",
+  "Georgia",
+  "Helvetica",
+  "Lucida",
   "ms-gothic",
-  "tahoma",
-  "times-new-roman",
-  "verdana"
+  "Tahoma",
+  "Times-New-Roman",
+  "Verdana"
 ];
 Quill.register(Font, true);
 
