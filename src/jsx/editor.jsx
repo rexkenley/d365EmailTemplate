@@ -1,8 +1,8 @@
-import "tinymce";
+import tinymce from "tinymce/tinymce";
+import "tinymce/themes/silver/theme";
 import "tinymce/skins/ui/oxide/skin.min.css";
 import "tinymce/skins/ui/oxide/content.min.css";
 import "tinymce/skins/content/default/content.css";
-import "tinymce/themes/silver/theme";
 
 import "tinymce/plugins/image/index";
 import "tinymce/plugins/imagetools/index";
@@ -33,7 +33,7 @@ import {
 } from "office-ui-fabric-react/lib/Button";
 import { Editor as TinyEditor } from "@tinymce/tinymce-react";
 
-import { getEntityData, formatObject, saveEntityData } from "./../js/d365ce";
+import { getEntityData, formatObject, saveEntityData } from "../js/d365ce";
 import merge from "../js/merge";
 import store, {
   setEntity,
@@ -124,7 +124,7 @@ const getItems = (meta, entity, templates, attribute) => {
 
             if (!template || !template.subject) return;
 
-            template.notetext = tinyMCE.get()[0].getContent();
+            template.notetext = tinymce.get()[0].getContent();
 
             await saveEntityData("annotation", template);
             dispatch(setTemplate(template));
@@ -159,13 +159,12 @@ const getItems = (meta, entity, templates, attribute) => {
         iconProps: { iconName: "ProductList" },
         subMenuProps: {
           items: meta[entity].attributes
-            .sort((a, b) => {
-              return (
+            .sort(
+              (a, b) =>
                 (a.displayName < b.displayName && -1) ||
                 (a.displayName > b.displayName && 1) ||
                 0
-              );
-            })
+            )
             .map(a => {
               if (a.attributeType === "DateTime") {
                 return {
@@ -231,52 +230,50 @@ const getItems = (meta, entity, templates, attribute) => {
         };
 
       if (isDateTime) {
-        const dtItems = [
-          defaultItem,
-          {
-            key: "longDate",
-            text: "Long Date",
-            onClick: () => {
-              setNoteText(
-                `${template.notetext} {{formatDate ${attribute}.value month="long" day="numeric" year="numeric"}}`
-              );
-            }
-          },
-          {
-            key: "shortDate",
-            text: "Short Date",
-            onClick: () => {
-              setNoteText(
-                `${template.notetext} {{formatDate ${attribute}.value month="2-digit" day="2-digit" year="2-digit"}}`
-              );
-            }
-          },
-          {
-            key: "hours12",
-            text: "12 Hours",
-            onClick: () => {
-              setNoteText(
-                `${template.notetext} {{formatTime ${attribute}.value hour12=true hour="numeric" minute="numeric"}}`
-              );
-            }
-          },
-          {
-            key: "hours24",
-            text: "24 Hours",
-            onClick: () => {
-              setNoteText(
-                `${template.notetext} {{formatTime ${attribute}.value hour12=false hour="numeric" minute="numeric"}}`
-              );
-            }
-          }
-        ];
-
         cbItems.push({
           key: "format",
           text: "Format",
           iconProps: { iconName: "DateTime" },
           subMenuProps: {
-            items: dtItems
+            items: [
+              defaultItem,
+              {
+                key: "longDate",
+                text: "Long Date",
+                onClick: () => {
+                  setNoteText(
+                    `${template.notetext} {{formatDate ${attribute}.value month="long" day="numeric" year="numeric"}}`
+                  );
+                }
+              },
+              {
+                key: "shortDate",
+                text: "Short Date",
+                onClick: () => {
+                  setNoteText(
+                    `${template.notetext} {{formatDate ${attribute}.value month="2-digit" day="2-digit" year="2-digit"}}`
+                  );
+                }
+              },
+              {
+                key: "hours12",
+                text: "12 Hours",
+                onClick: () => {
+                  setNoteText(
+                    `${template.notetext} {{formatTime ${attribute}.value hour12=true hour="numeric" minute="numeric"}}`
+                  );
+                }
+              },
+              {
+                key: "hours24",
+                text: "24 Hours",
+                onClick: () => {
+                  setNoteText(
+                    `${template.notetext} {{formatTime ${attribute}.value hour12=false hour="numeric" minute="numeric"}}`
+                  );
+                }
+              }
+            ]
           }
         });
       }
@@ -302,6 +299,8 @@ const getItems = (meta, entity, templates, attribute) => {
         <CommandBar items={getItems(meta, entity, templates, attribute)} />
         <TinyEditor
           init={{
+            skin: false,
+            content_css: false,
             height: window.innerHeight - 80,
             width: window.innerWidth - 40,
             plugins:
@@ -330,20 +329,23 @@ const getItems = (meta, entity, templates, attribute) => {
               },
               help: { title: "Help", items: "help" }
             },
+            automatic_uploads: true,
+            image_advtab: true,
             image_title: true,
+            image_description: false,
             file_picker_types: "image",
-            file_picker_callback: (cb, value, meta) => {
+            file_picker_callback: cb => {
               const input = document.createElement("input");
               input.setAttribute("type", "file");
               input.setAttribute("accept", "image/*");
 
-              input.onchange = function() {
-                const file = this.files[0],
+              input.onchange = () => {
+                const file = input.files[0],
                   reader = new FileReader();
 
-                reader.onload = function() {
+                reader.onload = () => {
                   const id = `blobid${new Date().getTime()}`,
-                    { blobCache } = tinyMCE.get()[0].editorUpload,
+                    { blobCache } = tinymce.get()[0].editorUpload,
                     base64 = reader.result.split(",")[1],
                     blobInfo = blobCache.create(id, file, base64);
 
