@@ -1,24 +1,3 @@
-import tinymce from "tinymce/tinymce";
-import "tinymce/themes/silver/theme";
-import "tinymce/skins/ui/oxide/skin.min.css";
-import "tinymce/skins/ui/oxide/content.min.css";
-import "tinymce/skins/content/default/content.css";
-
-import "tinymce/plugins/visualchars/index";
-import "tinymce/plugins/visualblocks/index";
-import "tinymce/plugins/image/index";
-import "tinymce/plugins/imagetools/index";
-import "tinymce/plugins/link/index";
-import "tinymce/plugins/media/index";
-import "tinymce/plugins/codesample/index";
-import "tinymce/plugins/charmap/index";
-import "tinymce/plugins/emoticons/index";
-import "tinymce/plugins/emoticons/js/emojis";
-import "tinymce/plugins/hr/index";
-import "tinymce/plugins/table/index";
-import "tinymce/plugins/help/index";
-
-import { get } from "lodash";
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Fabric } from "office-ui-fabric-react/lib/Fabric";
@@ -33,6 +12,24 @@ import {
   PrimaryButton,
   DefaultButton
 } from "office-ui-fabric-react/lib/Button";
+import "tinymce/tinymce";
+import "tinymce/themes/silver/theme";
+import "tinymce/skins/ui/oxide/skin.min.css";
+import "tinymce/skins/ui/oxide/content.min.css";
+import "tinymce/skins/content/default/content.css";
+import "tinymce/plugins/visualchars/index";
+import "tinymce/plugins/visualblocks/index";
+import "tinymce/plugins/image/index";
+import "tinymce/plugins/imagetools/index";
+import "tinymce/plugins/link/index";
+import "tinymce/plugins/media/index";
+import "tinymce/plugins/codesample/index";
+import "tinymce/plugins/charmap/index";
+import "tinymce/plugins/emoticons/index";
+import "tinymce/plugins/emoticons/js/emojis";
+import "tinymce/plugins/hr/index";
+import "tinymce/plugins/table/index";
+import "tinymce/plugins/help/index";
 import { Editor as TinyEditor } from "@tinymce/tinymce-react";
 
 import { getEntityData, formatObject, saveEntityData } from "../js/d365ce";
@@ -44,7 +41,8 @@ import store, {
   setAttribute
 } from "../js/store";
 
-const getItems = (meta, entity, templates, attribute) => {
+const tinyEditor = React.createRef(),
+  getItems = (meta, entity, templates, attribute) => {
     const dispatch = useDispatch(),
       smpTemplateItems = [
         {
@@ -67,6 +65,8 @@ const getItems = (meta, entity, templates, attribute) => {
             iconProps: { iconName: "QuickNote" },
             onClick: () => {
               const { annotationid: id, subject, notetext } = t;
+
+              tinyEditor.current.editor.setContent(notetext);
 
               dispatch(
                 setTemplate({
@@ -116,7 +116,9 @@ const getItems = (meta, entity, templates, attribute) => {
           text: "Templates",
           iconProps: { iconName: "FileTemplate" },
           subMenuProps: smpTemplate
-        },
+        }
+      ],
+      cbItems2 = [
         {
           key: "save",
           text: "Save",
@@ -126,7 +128,7 @@ const getItems = (meta, entity, templates, attribute) => {
 
             if (!template || !template.subject) return;
 
-            template.notetext = tinymce.get()[0].getContent();
+            template.notetext = tinyEditor.current.editor.getContent();
 
             await saveEntityData("annotation", template);
             dispatch(setTemplate(template));
@@ -150,6 +152,23 @@ const getItems = (meta, entity, templates, attribute) => {
               subject: template.subject,
               description: html
             });
+          }
+        },
+        {
+          key: "preview",
+          text: "Preview",
+          iconProps: { iconName: "Preview" },
+          onClick: async () => {
+            const { template } = store.getState(),
+              result = await getEntityData(
+                "accounts",
+                "3CA3B8D2-034B-E911-A82F-000D3A17CE77"
+              ),
+              data = formatObject(result),
+              html = merge(template.notetext, data),
+              wnd = window.open("about:blank", "", "_blank");
+
+            wnd.document.write(html);
           }
         }
       ];
@@ -281,7 +300,7 @@ const getItems = (meta, entity, templates, attribute) => {
       }
     }
 
-    return cbItems;
+    return cbItems.concat(cbItems2);
   },
   Editor = () => {
     const [templateName, setTemplateName] = useState(""),
@@ -300,6 +319,8 @@ const getItems = (meta, entity, templates, attribute) => {
       <Fabric>
         <CommandBar items={getItems(meta, entity, templates, attribute)} />
         <TinyEditor
+          ref={tinyEditor}
+          disabled={!template}
           init={{
             skin: false,
             content_css: false,
@@ -351,7 +372,7 @@ const getItems = (meta, entity, templates, attribute) => {
 
                 reader.onload = () => {
                   const id = `blobid${new Date().getTime()}`,
-                    { blobCache } = tinymce.get()[0].editorUpload,
+                    { blobCache } = tinyEditor.current.editor.editorUpload,
                     base64 = reader.result.split(",")[1],
                     blobInfo = blobCache.create(id, file, base64);
 
@@ -366,7 +387,6 @@ const getItems = (meta, entity, templates, attribute) => {
             },
             toolbar: false
           }}
-          value={get(template, "notetext", "")}
         />
         <Dialog
           hidden={!entity || !template || template.subject}
