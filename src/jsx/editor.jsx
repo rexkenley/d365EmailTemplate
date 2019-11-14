@@ -4,6 +4,8 @@ import "tinymce/skins/ui/oxide/skin.min.css";
 import "tinymce/skins/ui/oxide/content.min.css";
 import "tinymce/skins/content/default/content.css";
 
+import "tinymce/plugins/visualchars/index";
+import "tinymce/plugins/visualblocks/index";
 import "tinymce/plugins/image/index";
 import "tinymce/plugins/imagetools/index";
 import "tinymce/plugins/link/index";
@@ -304,7 +306,7 @@ const getItems = (meta, entity, templates, attribute) => {
             height: window.innerHeight - 80,
             width: window.innerWidth - 40,
             plugins:
-              "image, imagetools, link, media, codesample, charmap, emoticons, hr, table, help",
+              "visualchars, visualblocks, image, imagetools, link, media, codesample, charmap, emoticons, hr, table, help",
             menu: {
               file: {
                 title: "File",
@@ -313,6 +315,10 @@ const getItems = (meta, entity, templates, attribute) => {
               edit: {
                 title: "Edit",
                 items: "undo redo | cut copy paste | selectall | searchreplace"
+              },
+              view: {
+                title: "View",
+                items: "visualaid visualchars visualblocks"
               },
               insert: {
                 title: "Insert",
