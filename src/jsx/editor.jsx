@@ -118,6 +118,7 @@ const tinyEditor = React.createRef(),
           subMenuProps: smpTemplate
         }
       ],
+      { regardingObjectId } = store.getState(),
       cbItems2 = [
         {
           key: "save",
@@ -139,12 +140,11 @@ const tinyEditor = React.createRef(),
           key: "merge",
           text: "Merge",
           iconProps: { iconName: "Merge" },
+          disabled: !regardingObjectId,
           onClick: async () => {
             const { template } = store.getState(),
-              result = await getEntityData(
-                "accounts",
-                "3CA3B8D2-034B-E911-A82F-000D3A17CE77"
-              ),
+              { id, logicalName } = regardingObjectId,
+              result = await getEntityData(logicalName, id),
               data = formatObject(result),
               html = merge(template.notetext, data);
 
@@ -158,12 +158,11 @@ const tinyEditor = React.createRef(),
           key: "preview",
           text: "Preview",
           iconProps: { iconName: "Preview" },
+          disabled: !regardingObjectId,
           onClick: async () => {
             const { template } = store.getState(),
-              result = await getEntityData(
-                "accounts",
-                "3CA3B8D2-034B-E911-A82F-000D3A17CE77"
-              ),
+              { id, logicalName } = regardingObjectId,
+              result = await getEntityData(logicalName, id),
               data = formatObject(result),
               html = merge(template.notetext, data),
               wnd = window.open("about:blank", "", "_blank");

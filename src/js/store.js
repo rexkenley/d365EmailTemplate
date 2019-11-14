@@ -19,7 +19,8 @@ function reducer(state, { type = "", payload = null }) {
       return { ...state, templates: payload };
     case "SET_ATTRIBUTE":
       return { ...state, attribute: payload };
-
+    case "SET_REGARDINGOBJECTID":
+      return { ...state, regardingObjectId: payload };
     default:
       return state;
   }
@@ -89,6 +90,16 @@ export function setAttribute(attribute) {
 }
 
 /**
+ * Sets the RegardingObjectId
+ * @param {Object} regardingObjectId
+ */
+export function setRegardingObjectId(regardingObjectId) {
+  return dispatch => {
+    dispatch({ type: "SET_REGARDINGOBJECTID", payload: regardingObjectId });
+  };
+}
+
+/**
  * @const {Object}
  */
 const initialState = {
@@ -96,7 +107,8 @@ const initialState = {
     entity: "",
     template: null,
     templates: null,
-    attribute: ""
+    attribute: "",
+    regardingObjectId: null
   },
   store = createStore(reducer, initialState, applyMiddleware(thunk));
 
