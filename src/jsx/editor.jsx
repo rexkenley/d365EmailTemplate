@@ -31,18 +31,35 @@ import "tinymce/plugins/hr/index";
 import "tinymce/plugins/table/index";
 import "tinymce/plugins/help/index";
 import { Editor as TinyEditor } from "@tinymce/tinymce-react";
+import get from "lodash/get";
 
 import { getEntityData, formatObject, saveEntityData } from "../js/d365ce";
 import merge from "../js/merge";
-import store, {
+import {
   setEntity,
   setTemplate,
   getTemplates,
   setAttribute
 } from "../js/store";
 
-const tinyEditor = React.createRef(),
-  getItems = (meta, entity, templates, attribute) => {
+/**
+ * @param {Object} tinyEditor
+ * @param {Object} meta
+ * @param {Object[]} templates
+ * @param {string} entity
+ * @param {Object} template
+ * @param {string} attribute
+ * @param {Object} regardingObjectId
+ */
+const getItems = (
+    tinyEditor,
+    meta,
+    templates,
+    entity,
+    template,
+    attribute,
+    regardingObjectId
+  ) => {
     const dispatch = useDispatch(),
       smpTemplateItems = [
         {
@@ -50,6 +67,7 @@ const tinyEditor = React.createRef(),
           text: "New Template",
           iconProps: { iconName: "WebTemplate" },
           onClick: () => {
+            tinyEditor.current.editor.setContent("");
             dispatch(setTemplate({ subject: "" }));
           }
         }
@@ -62,6 +80,8 @@ const tinyEditor = React.createRef(),
           smpTemplateItems.push({
             key: t.subject,
             text: t.subject.replace(`d365EmailTemplate:${entity}:`, ""),
+            canCheck: true,
+            checked: t.subject === get(template, "subject"),
             iconProps: { iconName: "QuickNote" },
             onClick: () => {
               const { annotationid: id, subject, notetext } = t;
@@ -84,6 +104,8 @@ const tinyEditor = React.createRef(),
         {
           key: "global",
           text: "Global",
+          canCheck: true,
+          checked: entity === "global",
           onClick: () => {
             dispatch(setEntity("global"));
           }
@@ -93,6 +115,8 @@ const tinyEditor = React.createRef(),
           .map(k => ({
             key: k,
             text: meta[k].displayName,
+            canCheck: true,
+            checked: entity === k,
             onClick: () => {
               dispatch(setEntity(k));
             }
@@ -118,21 +142,36 @@ const tinyEditor = React.createRef(),
           subMenuProps: smpTemplate
         }
       ],
-      { regardingObjectId } = store.getState(),
+      mergeHtmlData = async (isPreview = false) => {
+        const { id, logicalName } = regardingObjectId,
+          result = await getEntityData(logicalName, id),
+          data = formatObject(result),
+          html = merge(template.notetext, data);
+
+        if (isPreview) {
+          window.open("about:blank", "", "_blank").document.write(html);
+        } else {
+          saveEntityData("email", {
+            subject: template.subject,
+            description: html
+          });
+        }
+      },
       cbItems2 = [
         {
           key: "save",
           text: "Save",
           iconProps: { iconName: "SaveTemplate" },
           onClick: async () => {
-            const { template } = store.getState();
-
             if (!template || !template.subject) return;
 
-            template.notetext = tinyEditor.current.editor.getContent();
+            const updated = {
+              ...template,
+              notetext: tinyEditor.current.editor.getContent()
+            };
 
-            await saveEntityData("annotation", template);
-            dispatch(setTemplate(template));
+            await saveEntityData("annotation", updated);
+            dispatch(setTemplate(updated));
             dispatch(getTemplates());
           }
         },
@@ -141,17 +180,8 @@ const tinyEditor = React.createRef(),
           text: "Merge",
           iconProps: { iconName: "Merge" },
           disabled: !regardingObjectId,
-          onClick: async () => {
-            const { template } = store.getState(),
-              { id, logicalName } = regardingObjectId,
-              result = await getEntityData(logicalName, id),
-              data = formatObject(result),
-              html = merge(template.notetext, data);
-
-            saveEntityData("email", {
-              subject: template.subject,
-              description: html
-            });
+          onClick: () => {
+            mergeHtmlData();
           }
         },
         {
@@ -159,15 +189,8 @@ const tinyEditor = React.createRef(),
           text: "Preview",
           iconProps: { iconName: "Preview" },
           disabled: !regardingObjectId,
-          onClick: async () => {
-            const { template } = store.getState(),
-              { id, logicalName } = regardingObjectId,
-              result = await getEntityData(logicalName, id),
-              data = formatObject(result),
-              html = merge(template.notetext, data),
-              wnd = window.open("about:blank", "", "_blank");
-
-            wnd.document.write(html);
+          onClick: () => {
+            mergeHtmlData(true);
           }
         }
       ];
@@ -190,6 +213,8 @@ const tinyEditor = React.createRef(),
                 return {
                   key: a.logicalName,
                   text: a.displayName,
+                  canCheck: true,
+                  checked: attribute === a.logicalName,
                   onClick: () => {
                     dispatch(setAttribute(a.logicalName));
                   }
@@ -200,8 +225,9 @@ const tinyEditor = React.createRef(),
                 key: a.logicalName,
                 text: a.displayName,
                 onClick: () => {
-                  const { template } = store.getState(),
-                    useFormatted = [
+                  if (!template) return;
+
+                  const useFormatted = [
                       "BigInt",
                       "Decimal",
                       "Double",
@@ -214,16 +240,17 @@ const tinyEditor = React.createRef(),
                       "Picklist",
                       "State",
                       "Status"
-                    ].includes(a.attributeType);
+                    ].includes(a.attributeType),
+                    notetext = `${template.notetext} {{${a.logicalName +
+                      (useFormatted ? ".formatted" : "")}}}`;
 
-                  if (!template) return;
+                  tinyEditor.current.editor.setContent(notetext);
 
                   dispatch(setAttribute(""));
                   dispatch(
                     setTemplate({
                       ...template,
-                      notetext: `${template.notetext} {{${a.logicalName +
-                        (useFormatted ? ".formatted" : "")}}}`
+                      notetext
                     })
                   );
                 }
@@ -234,11 +261,11 @@ const tinyEditor = React.createRef(),
     }
 
     if (attribute) {
-      const { template } = store.getState(),
-        isDateTime =
+      const isDateTime =
           meta[entity].attributes.find(a => a.logicalName === attribute)
             .attributeType === "DateTime",
         setNoteText = notetext => {
+          tinyEditor.current.editor.setContent(notetext);
           dispatch(setTemplate({ ...template, notetext }));
         },
         defaultItem = {
@@ -301,6 +328,7 @@ const tinyEditor = React.createRef(),
 
     return cbItems.concat(cbItems2);
   },
+  tinyEditor = React.createRef(),
   Editor = () => {
     const [templateName, setTemplateName] = useState(""),
       dispatch = useDispatch(),
@@ -309,14 +337,49 @@ const tinyEditor = React.createRef(),
       template = useSelector(state => state.template),
       templates = useSelector(state => state.templates),
       attribute = useSelector(state => state.attribute),
+      regardingObjectId = useSelector(state => state.regardingObjectId),
       dismiss = () => {
         dispatch(setTemplate({}));
         setTemplateName("");
+      },
+      fpCB = cb => {
+        const input = document.createElement("input");
+        input.setAttribute("type", "file");
+        input.setAttribute("accept", "image/*");
+
+        input.onchange = () => {
+          const file = input.files[0],
+            reader = new FileReader();
+
+          reader.onload = () => {
+            const id = `blobid${new Date().getTime()}`,
+              { blobCache } = tinyEditor.current.editor.editorUpload,
+              base64 = reader.result.split(",")[1],
+              blobInfo = blobCache.create(id, file, base64);
+
+            blobCache.add(blobInfo);
+
+            cb(blobInfo.blobUri(), { title: file.name });
+          };
+          reader.readAsDataURL(file);
+        };
+
+        input.click();
       };
 
     return (
       <Fabric>
-        <CommandBar items={getItems(meta, entity, templates, attribute)} />
+        <CommandBar
+          items={getItems(
+            tinyEditor,
+            meta,
+            templates,
+            entity,
+            template,
+            attribute,
+            regardingObjectId
+          )}
+        />
         <TinyEditor
           ref={tinyEditor}
           disabled={!template}
@@ -360,30 +423,7 @@ const tinyEditor = React.createRef(),
             image_title: true,
             image_description: false,
             file_picker_types: "image",
-            file_picker_callback: cb => {
-              const input = document.createElement("input");
-              input.setAttribute("type", "file");
-              input.setAttribute("accept", "image/*");
-
-              input.onchange = () => {
-                const file = input.files[0],
-                  reader = new FileReader();
-
-                reader.onload = () => {
-                  const id = `blobid${new Date().getTime()}`,
-                    { blobCache } = tinyEditor.current.editor.editorUpload,
-                    base64 = reader.result.split(",")[1],
-                    blobInfo = blobCache.create(id, file, base64);
-
-                  blobCache.add(blobInfo);
-
-                  cb(blobInfo.blobUri(), { title: file.name });
-                };
-                reader.readAsDataURL(file);
-              };
-
-              input.click();
-            },
+            file_picker_callback: fpCB,
             toolbar: false
           }}
         />

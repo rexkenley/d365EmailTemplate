@@ -12,10 +12,11 @@ import store, {
 import Editor from "../jsx/editor";
 
 initializeIcons();
-const regardingObjectId = {
-    logicalName: "accounts",
-    id: "3CA3B8D2-034B-E911-A82F-000D3A17CE77"
-  },
+
+const urlParams = new URLSearchParams(window.location.search),
+  regardingObjectId = urlParams.has("Data")
+    ? JSON.parse(urlParams.get("Data").replace("regardingObjectId=", ""))
+    : null,
   run = async () => {
     const meta = await getMetaData(
       "account",
