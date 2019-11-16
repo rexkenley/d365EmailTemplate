@@ -12,7 +12,8 @@
     "buildPrdForm": "npx webpack --config webpack/config.prd.form.js",
     "//d365EmailTemplate": "*****************************************************************",
     "build:dev": "%npm_package_scripts_buildDevForm% src\\js\\d365EmailTemplate.js -o dist\\d365EmailTemplate.js && npx pug src\\pug\\d365EmailTemplate.pug -o dist && %npm_package_scripts_buildDevForm% src\\js\\email.ribbon.js -o dist\\email.ribbon.js",
-    "build:prd": "%npm_package_scripts_buildPrdForm% src\\js\\d365EmailTemplate.js -o dist\\d365EmailTemplate.js && npx pug src\\pug\\d365EmailTemplate.pug -o dist",
+    "build:d365EmailTemplate:prd": "%npm_package_scripts_buildPrdForm% src\\js\\d365EmailTemplate.js -o dist\\d365EmailTemplate.js && npx pug src\\pug\\d365EmailTemplate.pug -o dist",
+    "build:email:prd": "%npm_package_scripts_buildPrdForm% src\\js\\email.ribbon.js -o dist\\email.ribbon.js",
     "test": "npx jest --verbose ./test"
   },
   "keywords": [

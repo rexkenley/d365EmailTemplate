@@ -142,19 +142,16 @@ const getItems = (
           subMenuProps: smpTemplate
         }
       ],
-      mergeHtmlData = async (isPreview = false) => {
+      mergeHtmlData = async (showPreview = false) => {
         const { id, logicalName } = regardingObjectId,
           result = await getEntityData(logicalName, id),
           data = formatObject(result),
           html = merge(template.notetext, data);
 
-        if (isPreview) {
+        if (showPreview) {
           window.open("about:blank", "", "_blank").document.write(html);
         } else {
-          saveEntityData("email", {
-            subject: template.subject,
-            description: html
-          });
+          window.opener.Xrm.Page.getAttribute("description").setValue(html);
         }
       },
       cbItems2 = [
