@@ -31,3 +31,16 @@ A d365 CE package that would allow users to create visually rich email templates
       - Library: prefix_email.ribbon.js
       - Function Name: openD365EmailTemplate
       - Add Crm Parameter = PrimaryControl
+
+## Buttons
+
+- **Entity** - this lists all the entities that can be merge with templates. The check mark will indicate the current selected entity.
+- **Template** - this lists all the templates that are available for the selected entity. The check mark will indicate the current selected template. Clicking on a template will load it in the tinyMCE viewer below.
+- **Attribute** - this lists all the available attributes of the selected entity. When you click on an attribute it will add the attribute to the selected template. 
+- **Format** - if you select a DateTime attribute, this button will appear to provie additional formatting options.
+- **Save**
+- **Merge** - this will merge the selected template and place the resulting html to the "parent" email window.
+- **Preview** - this will show the result the merge.
+
+Click on [tinyMCE](https://www.tiny.cloud/docs/) to see the documentation on how to use the editor.
+
