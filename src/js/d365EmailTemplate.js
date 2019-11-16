@@ -13,45 +13,52 @@ import Editor from "../jsx/editor";
 
 initializeIcons();
 
-const urlParams = new URLSearchParams(window.location.search),
-  regardingObjectId = urlParams.has("Data")
-    ? JSON.parse(urlParams.get("Data").replace("regardingObjectId=", ""))
-    : null,
-  run = async () => {
-    const meta = await getMetaData(
-      "account",
-      "contact",
-      "incident",
-      "invoice",
-      "lead",
-      "opportunity",
-      "quote",
-      "salesorder",
-      "annotation",
-      "email"
-    );
+let regardingObjectId = null;
+const urlParams = new URLSearchParams(window.location.search);
 
-    store.dispatch(setMeta(meta));
-    store.dispatch(getTemplates());
+if (urlParams.has("Data")) {
+  const dataParams = new URLSearchParams(urlParams.get("Data"));
 
-    if (regardingObjectId) {
-      store.dispatch(setRegardingObjectId(regardingObjectId));
+  if (dataParams.has("regardingObjectId")) {
+    regardingObjectId = JSON.parse(dataParams.get("regardingObjectId"));
+  }
+}
 
-      if (Object.keys(meta).some(k => k === regardingObjectId.logicalName)) {
-        store.dispatch(setEntity(regardingObjectId.logicalName));
-      } else {
-        store.dispatch(setEntity("global"));
-      }
+const run = async () => {
+  const meta = await getMetaData(
+    "account",
+    "contact",
+    "incident",
+    "invoice",
+    "lead",
+    "opportunity",
+    "quote",
+    "salesorder",
+    "annotation",
+    "email"
+  );
+
+  store.dispatch(setMeta(meta));
+  store.dispatch(getTemplates());
+
+  if (regardingObjectId) {
+    store.dispatch(setRegardingObjectId(regardingObjectId));
+
+    if (Object.keys(meta).some(k => k === regardingObjectId.logicalName)) {
+      store.dispatch(setEntity(regardingObjectId.logicalName));
     } else {
       store.dispatch(setEntity("global"));
     }
+  } else {
+    store.dispatch(setEntity("global"));
+  }
 
-    ReactDOM.render(
-      <Provider store={store}>
-        <Editor />
-      </Provider>,
-      document.getElementById("d365EmailTemplate")
-    );
-  };
+  ReactDOM.render(
+    <Provider store={store}>
+      <Editor />
+    </Provider>,
+    document.getElementById("d365EmailTemplate")
+  );
+};
 
 run();
