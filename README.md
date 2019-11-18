@@ -1,4 +1,4 @@
-# d365EmailTemplate
+# d365EmailTemplate (v9)
 
 A d365 CE package that would allow users to create visually rich email templates.
 
