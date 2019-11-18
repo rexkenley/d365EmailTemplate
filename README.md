@@ -42,7 +42,7 @@ A d365 CE package that would allow users to create visually rich email templates
 - **Merge** - this will merge the selected template and place the resulting html to the "parent" email window.
 - **Preview** - this will show the result the merge.
 
-## Addtional Documentataion
+## Addtional Documentation
 - [tinyMCE](https://www.tiny.cloud/docs/) - the editor used in this project
 - [Handlebars](https://handlebarsjs.com/) - the templating engine used in this project
 - [Handlebars Intl](https://formatjs.io/handlebars/) - Handlebars "helper" that formats the date
