@@ -1,4 +1,4 @@
-# d365EmailTemplate (v9)
+# d365EmailTemplate (v8, v9)
 
 A d365 CE package that would allow users to create visually rich email templates.
 
@@ -14,7 +14,7 @@ A d365 CE package that would allow users to create visually rich email templates
     * prefix_email.ribbon.js
       - const wrName = "prefix_d365EmailTemplate.html"
 
-4. run `npm run build:dev` for development build
+4. run `npm run build:dev` for development build (you have to increase the allowed email attachment size to 20480)
 
 5. run `npm run build:d365EmailTemplate:prd` and `npm run build:email:prd` for production build
 
