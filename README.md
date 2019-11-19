@@ -38,7 +38,7 @@ A d365 CE package that would allow users to create visually rich email templates
 - **Template** - this lists all the templates that are available for the selected entity. The check mark will indicate the current selected template. Clicking on a template will load it in the tinyMCE viewer below.
 - **Attribute** - this lists all the available attributes of the selected entity. When you click on an attribute it will add the attribute to the selected template. 
 - **Format** - if you select a DateTime attribute, this button will appear to provie additional formatting options.
-- **Save**
+- **Save** - after entering the new template name, click save to see the new template in the Template dropdown.
 - **Merge** - this will merge the selected template and place the resulting html to the "parent" email window.
 - **Preview** - this will show the result the merge.
 
