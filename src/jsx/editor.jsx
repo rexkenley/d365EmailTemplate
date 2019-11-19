@@ -30,6 +30,8 @@ import "tinymce/plugins/emoticons/js/emojis";
 import "tinymce/plugins/hr/index";
 import "tinymce/plugins/table/index";
 import "tinymce/plugins/help/index";
+import "tinymce/plugins/autoresize/index";
+import "tinymce/plugins/searchreplace/index";
 import { Editor as TinyEditor } from "@tinymce/tinymce-react";
 import get from "lodash/get";
 
@@ -361,7 +363,8 @@ const getItems = (
         };
 
         input.click();
-      };
+      },
+      editorHeight = window.innerHeight - 80;
 
     return (
       <Fabric>
@@ -382,10 +385,8 @@ const getItems = (
           init={{
             skin: false,
             content_css: false,
-            height: window.innerHeight - 80,
-            width: window.innerWidth - 40,
             plugins:
-              "visualchars, visualblocks, image, imagetools, link, media, codesample, charmap, emoticons, hr, table, help",
+              "autoresize, searchreplace, visualchars, visualblocks, image, imagetools, link, media, codesample, charmap, emoticons, hr, table, help",
             menu: {
               file: {
                 title: "File",
@@ -414,6 +415,11 @@ const getItems = (
               },
               help: { title: "Help", items: "help" }
             },
+            autoresize_on_init: true,
+            autoresize_bottom_margin: 80,
+            autoresize_overflow_padding: 50,
+            max_height: editorHeight,
+            min_height: editorHeight,
             automatic_uploads: true,
             image_advtab: true,
             image_title: true,
