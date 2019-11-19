@@ -167,27 +167,32 @@ export async function getEntityData(logicalName, id) {
   try {
     if (!logicalName || !isUUID(id)) return null;
 
-    let result;
+    let data;
 
     if (isV9) {
-      result = await Xrm.WebApi.retrieveRecord(logicalName, id.toLowerCase());
-    } else {
-      const ENTITY_SET_NAMES = JSON.parse(window.ENTITY_SET_NAMES);
-
-      result = await fetch(
-        `${getClientUrl()}/api/data/${apiVersion}/${
-          ENTITY_SET_NAMES[logicalName]
-        }(${id})`,
-        {
-          method: "GET",
-          headers
-        }
+      const result = await Xrm.WebApi.retrieveRecord(
+        logicalName,
+        id.toLowerCase()
       );
+
+      data = formatObject(result);
+    } else {
+      const ENTITY_SET_NAMES = JSON.parse(window.ENTITY_SET_NAMES),
+        result = await fetch(
+          `${getClientUrl()}/api/data/${apiVersion}/${
+            ENTITY_SET_NAMES[logicalName]
+          }(${id})`,
+          {
+            method: "GET",
+            headers
+          }
+        ),
+        json = result && (await result.json());
+
+      data = formatObject(json);
     }
 
-    const json = result && (await result.json());
-
-    return formatObject(json);
+    return data;
   } catch (e) {
     console.error(e.message || e);
     return null;
@@ -204,26 +209,30 @@ export async function getMultipleData(logicalName, oData) {
   try {
     if (!logicalName || !oData) return null;
 
-    let result;
+    let data;
 
     if (isV9) {
-      result = await Xrm.WebApi.retrieveMultipleRecords(logicalName, oData);
-    } else {
-      const ENTITY_SET_NAMES = JSON.parse(window.ENTITY_SET_NAMES);
-
-      result = await fetch(
-        `${getClientUrl()}/api/data/${apiVersion}/${
-          ENTITY_SET_NAMES[logicalName]
-        }?${oData}`,
-        {
-          method: "GET",
-          headers
-        }
+      const result = await Xrm.WebApi.retrieveMultipleRecords(
+        logicalName,
+        `${oData}`
       );
-    }
 
-    const json = result && (await result.json()),
+      data = result.entities.map(r => formatObject(r));
+    } else {
+      const ENTITY_SET_NAMES = JSON.parse(window.ENTITY_SET_NAMES),
+        result = await fetch(
+          `${getClientUrl()}/api/data/${apiVersion}/${
+            ENTITY_SET_NAMES[logicalName]
+          }?${oData}`,
+          {
+            method: "GET",
+            headers
+          }
+        ),
+        json = result && (await result.json());
+
       data = json.value.map(r => formatObject(r));
+    }
 
     return data;
   } catch (e) {
