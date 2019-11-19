@@ -144,8 +144,7 @@ const getItems = (
       ],
       mergeHtmlData = async (showPreview = false) => {
         const { id, logicalName } = regardingObjectId,
-          result = await getEntityData(logicalName, id),
-          data = formatObject(result),
+          data = await getEntityData(logicalName, id),
           html = merge(template.notetext, data);
 
         if (showPreview) {

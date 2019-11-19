@@ -1,14 +1,23 @@
 /* global Xrm */
-import { get } from "lodash";
+import get from "lodash/get";
+import isUUID from "validator/lib/isUUID";
 
-const headers = {
+/**
+ * @const {Boolean}
+ */
+export const isV9 = !!Xrm.WebApi;
+
+const { getClientUrl } = isV9
+    ? Xrm.Utility.getGlobalContext()
+    : Xrm.Page.context,
+  apiVersion = isV9 ? "v9.1" : "v8.2",
+  headers = {
     "OData-MaxVersion": "4.0",
     "OData-Version": "4.0",
     Accept: "application/json",
     "Content-Type": "application/json; charset=utf-8",
     Prefer: `odata.include-annotations="*"` // eslint-disable-line
-  },
-  apiVersion = "v9.1";
+  };
 
 /**
  * Gets the metadata of the listed entities
@@ -19,8 +28,7 @@ export async function getMetaData(...entities) {
   try {
     if (!entities || !entities.length) return [];
 
-    const { getClientUrl } = Xrm.Utility.getGlobalContext(),
-      metas = {},
+    const metas = {},
       entitySetNames = {};
 
     // eslint-disable-next-line
@@ -28,7 +36,9 @@ export async function getMetaData(...entities) {
       // eslint-disable-next-line
       const result = await fetch(
           `${getClientUrl()}/api/data/${apiVersion}/EntityDefinitions(LogicalName='${e}')` +
-            "?$select=LogicalName,DisplayName,EntitySetName&$expand=Attributes($select=LogicalName,DisplayName,AttributeType;$filter=IsValidForForm eq true)",
+            `?$select=LogicalName,DisplayName,EntitySetName&$expand=Attributes($select=LogicalName,DisplayName,AttributeType;${
+              isV9 ? "$filter=IsValidForForm eq true" : ""
+            })`,
           {
             method: "GET",
             headers
@@ -59,51 +69,6 @@ export async function getMetaData(...entities) {
     }
 
     return metas;
-  } catch (e) {
-    console.error(e.message || e);
-    return null;
-  }
-}
-
-/**
- * Retrieves a single entity record
- * @param {string} logicalName
- * @param {string} id
- * @return {Promise<Object>}
- */
-export async function getEntityData(logicalName, id) {
-  try {
-    const result = await Xrm.WebApi.retrieveRecord(
-      logicalName,
-      id.toLowerCase()
-    );
-
-    return result;
-  } catch (e) {
-    console.error(e.message || e);
-    return null;
-  }
-}
-
-/**
- * Saves a single entity record
- * @param {string} logicalName
- * @param {Object} entity
- * @return {Promise<Object>}
- */
-export async function saveEntityData(logicalName, entity) {
-  try {
-    const { createRecord, updateRecord } = Xrm.WebApi,
-      { id, ...x } = entity;
-    let result;
-
-    if (entity.id) {
-      result = await updateRecord(logicalName, id, { ...x });
-      return entity;
-    }
-
-    result = await createRecord(logicalName, { ...x });
-    return { ...x, id: result.id };
   } catch (e) {
     console.error(e.message || e);
     return null;
@@ -193,27 +158,118 @@ export function formatObject(obj, formatValue = FormatValue.both) {
 }
 
 /**
- * Gets multiple records based on odata
- * @param {string} oData
- * @return {Promise<Object[]>}
+ * Retrieves a single entity record
+ * @param {string} logicalName
+ * @param {string} id
+ * @return {Promise<Object>}
  */
-export async function getMultipleData(oData) {
+export async function getEntityData(logicalName, id) {
   try {
-    if (!oData) return null;
+    if (!logicalName || !isUUID(id)) return null;
 
-    // eslint-disable-next-line
-    const { getClientUrl } = Xrm.Utility.getGlobalContext(),
+    let result;
+
+    if (isV9) {
+      result = await Xrm.WebApi.retrieveRecord(logicalName, id.toLowerCase());
+    } else {
+      const ENTITY_SET_NAMES = JSON.parse(window.ENTITY_SET_NAMES);
+
       result = await fetch(
-        `${getClientUrl()}/api/data/${apiVersion}/${oData}`,
+        `${getClientUrl()}/api/data/${apiVersion}/${
+          ENTITY_SET_NAMES[logicalName]
+        }(${id})`,
         {
           method: "GET",
           headers
         }
-      ),
-      json = result && (await result.json()),
+      );
+    }
+
+    const json = result && (await result.json());
+
+    return formatObject(json);
+  } catch (e) {
+    console.error(e.message || e);
+    return null;
+  }
+}
+
+/**
+ * Gets multiple records based on odata
+ * @param {string} logicalName
+ * @param {string} oData
+ * @return {Promise<Object[]>}
+ */
+export async function getMultipleData(logicalName, oData) {
+  try {
+    if (!logicalName || !oData) return null;
+
+    let result;
+
+    if (isV9) {
+      result = await Xrm.WebApi.retrieveMultipleRecords(logicalName, oData);
+    } else {
+      const ENTITY_SET_NAMES = JSON.parse(window.ENTITY_SET_NAMES);
+
+      result = await fetch(
+        `${getClientUrl()}/api/data/${apiVersion}/${
+          ENTITY_SET_NAMES[logicalName]
+        }?${oData}`,
+        {
+          method: "GET",
+          headers
+        }
+      );
+    }
+
+    const json = result && (await result.json()),
       data = json.value.map(r => formatObject(r));
 
     return data;
+  } catch (e) {
+    console.error(e.message || e);
+    return null;
+  }
+}
+
+/**
+ * Saves a single entity record
+ * @param {string} logicalName
+ * @param {Object} entity
+ * @return {Promise<Object>}
+ */
+export async function saveEntityData(logicalName, entity) {
+  try {
+    if (!logicalName || !entity) return null;
+
+    const { id, ...x } = entity;
+    let result;
+
+    if (isV9) {
+      if (isUUID(id)) {
+        result = await Xrm.WebApi.updateRecord(logicalName, id, { ...x });
+        return entity;
+      }
+
+      result = await Xrm.WebApi.createRecord(logicalName, { ...x });
+      return { ...x, id: result.id };
+    }
+
+    const ENTITY_SET_NAMES = JSON.parse(window.ENTITY_SET_NAMES);
+
+    result = await fetch(
+      `${getClientUrl()}/api/data/${apiVersion}/${
+        ENTITY_SET_NAMES[logicalName]
+      }${isUUID(id) ? `(${id})` : ""}`,
+      {
+        method: isUUID(id) ? "PATCH" : "POST",
+        headers,
+        body: JSON.stringify({ ...x })
+      }
+    );
+
+    if (isUUID(id)) return entity;
+    return { ...x, id: result.id };
   } catch (e) {
     console.error(e.message || e);
     return null;

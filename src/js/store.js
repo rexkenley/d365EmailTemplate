@@ -73,7 +73,8 @@ export function setTemplates(templates) {
 export function getTemplates() {
   return async dispatch => {
     const templates = await getMultipleData(
-      "annotations?$select=annotationid,subject,notetext&$filter=startswith(subject,'d365EmailTemplate')&$orderby=subject"
+      "annotation",
+      "$select=annotationid,subject,notetext&$filter=startswith(subject,'d365EmailTemplate')&$orderby=subject"
     );
     dispatch({ type: "SET_TEMPLATES", payload: templates });
   };
