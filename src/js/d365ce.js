@@ -214,7 +214,7 @@ export async function getMultipleData(logicalName, oData) {
     if (isV9) {
       const result = await Xrm.WebApi.retrieveMultipleRecords(
         logicalName,
-        `${oData}`
+        oData
       );
 
       data = result.entities.map(r => formatObject(r));
