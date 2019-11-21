@@ -39,7 +39,7 @@ const run = async () => {
   );
 
   store.dispatch(setMeta(meta));
-  store.dispatch(getTemplates());
+  await store.dispatch(getTemplates());
 
   if (regardingObjectId) {
     store.dispatch(setRegardingObjectId(regardingObjectId));

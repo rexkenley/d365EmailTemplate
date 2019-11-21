@@ -170,7 +170,7 @@ const getItems = (
 
             await saveEntityData("annotation", updated);
             dispatch(setTemplate(updated));
-            dispatch(getTemplates());
+            await dispatch(getTemplates());
           }
         },
         {
@@ -200,6 +200,7 @@ const getItems = (
         iconProps: { iconName: "ProductList" },
         subMenuProps: {
           items: meta[entity].attributes
+            .slice()
             .sort(
               (a, b) =>
                 (a.displayName < b.displayName && -1) ||

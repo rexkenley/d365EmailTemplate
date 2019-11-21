@@ -1,71 +1,51 @@
-import { createStore, applyMiddleware } from "redux";
-import thunk from "redux-thunk";
+import { configureStore, createSlice } from "@reduxjs/toolkit";
 import { getMultipleData } from "./d365ce";
 
-/**
- * @param {Object} state
- * @param {Object} param1
- * @return {Object}
- */
-function reducer(state, { type = "", payload = null }) {
-  switch (type) {
-    case "SET_META":
-      return { ...state, meta: payload };
-    case "SET_ENTITY":
-      return { ...state, entity: payload };
-    case "SET_TEMPLATE":
-      return { ...state, template: payload };
-    case "SET_TEMPLATES":
-      return { ...state, templates: payload };
-    case "SET_ATTRIBUTE":
-      return { ...state, attribute: payload };
-    case "SET_REGARDINGOBJECTID":
-      return { ...state, regardingObjectId: payload };
-    default:
-      return state;
-  }
-}
+const editorSlice = createSlice({
+    name: "editor",
+    initialState: {
+      meta: null,
+      entity: "",
+      template: null,
+      templates: null,
+      attribute: "",
+      regardingObjectId: null
+    },
+    reducers: {
+      setMeta(state, { payload }) {
+        return { ...state, meta: payload };
+      },
+      setEntity(state, { payload }) {
+        return { ...state, entity: payload };
+      },
+      setTemplate(state, { payload }) {
+        return { ...state, template: payload };
+      },
+      setTemplates(state, { payload }) {
+        return { ...state, templates: payload };
+      },
+      setAttribute(state, { payload }) {
+        return { ...state, attribute: payload };
+      },
+      setRegardingObjectId(state, { payload }) {
+        return {
+          ...state,
+          regardingObjectId: payload
+        };
+      }
+    }
+  }),
+  store = configureStore({ reducer: editorSlice.reducer });
 
-/**
- * Sets the Meta Object
- * @param {Object} meta
- */
-export function setMeta(meta) {
-  return dispatch => {
-    dispatch({ type: "SET_META", payload: meta });
-  };
-}
-
-/**
- * Sets the Entity String
- * @param {string} entity
- */
-export function setEntity(entity) {
-  return dispatch => {
-    dispatch({ type: "SET_ENTITY", payload: entity });
-  };
-}
-
-/**
- * Sets the current Template Object
- * @param {Object} template
- */
-
-export function setTemplate(template) {
-  return dispatch => {
-    dispatch({ type: "SET_TEMPLATE", payload: template });
-  };
-}
-
-/**
- * Sets the Templates Array
- * @param {Object[]} templates
- */
-export function setTemplates(templates) {
-  return dispatch => {
-    dispatch({ type: "SET_TEMPLATES", payload: templates });
-  };
-}
+export default store;
+export const {
+  setMeta,
+  setEntity,
+  setTemplate,
+  setTemplates,
+  setAttribute,
+  setRegardingObjectId
+} = editorSlice.actions;
 
 /**
  * Gets all of the Templates from Annotations
@@ -76,41 +56,7 @@ export function getTemplates() {
       "annotation",
       "$select=annotationid,subject,notetext&$filter=startswith(subject,'d365EmailTemplate')&$orderby=subject"
     );
-    dispatch({ type: "SET_TEMPLATES", payload: templates });
+
+    dispatch(setTemplates(templates));
   };
 }
-
-/**
- * Sets the Attribute String
- * @param {string} attribute
- */
-export function setAttribute(attribute) {
-  return dispatch => {
-    dispatch({ type: "SET_ATTRIBUTE", payload: attribute });
-  };
-}
-
-/**
- * Sets the RegardingObjectId
- * @param {Object} regardingObjectId
- */
-export function setRegardingObjectId(regardingObjectId) {
-  return dispatch => {
-    dispatch({ type: "SET_REGARDINGOBJECTID", payload: regardingObjectId });
-  };
-}
-
-/**
- * @const {Object}
- */
-const initialState = {
-    meta: null,
-    entity: "",
-    template: null,
-    templates: null,
-    attribute: "",
-    regardingObjectId: null
-  },
-  store = createStore(reducer, initialState, applyMiddleware(thunk));
-
-export default store;
