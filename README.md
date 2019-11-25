@@ -32,6 +32,8 @@ A d365 CE package that would allow users to create visually rich email templates
       - Function Name: openD365EmailTemplate
       - Add Crm Parameter = PrimaryControl
 
+8. run `npm audit fix` - to check for any security vulnerabily. [npm audit](https://docs.npmjs.com/cli/audit)
+
 ## Buttons
 
 - **Entity** - this lists all the entities that can be merge with templates. The check mark will indicate the current selected entity.
