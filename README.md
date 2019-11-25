@@ -46,3 +46,6 @@ A d365 CE package that would allow users to create visually rich email templates
 - [tinyMCE](https://www.tiny.cloud/docs/) - the editor used in this project
 - [Handlebars](https://handlebarsjs.com/) - the templating engine used in this project
 - [Handlebars Intl](https://formatjs.io/handlebars/) - Handlebars "helper" that formats the date
+
+## Security Status
+[Snyk Report](https://snyk.io/test/github/rexkenley/d365EmailTemplate?tab=issues)
