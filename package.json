@@ -14,7 +14,8 @@
     "build:dev": "%npm_package_scripts_buildDevForm% src\\js\\d365EmailTemplate.js -o dist\\d365EmailTemplate.js && npx pug src\\pug\\d365EmailTemplate.pug -o dist && %npm_package_scripts_buildDevForm% src\\js\\email.ribbon.js -o dist\\email.ribbon.js",
     "build:d365EmailTemplate:prd": "%npm_package_scripts_buildPrdForm% src\\js\\d365EmailTemplate.js -o dist\\d365EmailTemplate.js && npx pug src\\pug\\d365EmailTemplate.pug -o dist",
     "build:email:prd": "%npm_package_scripts_buildPrdForm% src\\js\\email.ribbon.js -o dist\\email.ribbon.js",
-    "test": "npx jest --verbose ./test"
+    "test": "npx jest --verbose ./test",
+    "docs": "npx jsdoc -c jsdoc.json"
   },
   "keywords": [
     "d365",
@@ -32,7 +33,7 @@
     "@uifabric/icons": "^7.3.0",
     "clean-webpack-plugin": "^3.0.0",
     "core-js": "^3.3.5",
-    "handlebars": "^4.5.2",
+    "handlebars": "^4.5.3",
     "handlebars-intl": "^1.1.2",
     "lodash": "^4.17.15",
     "npm-check": "^5.9.0",
@@ -66,6 +67,7 @@
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-react": "^7.16.0",
     "jest": "^24.9.0",
+    "jsdoc": "^3.6.3",
     "prettier": "^1.18.2",
     "pug-cli": "^1.0.0-alpha6",
     "style-loader": "^1.0.0",

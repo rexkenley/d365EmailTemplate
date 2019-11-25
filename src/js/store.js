@@ -1,6 +1,10 @@
 import { configureStore, createSlice } from "@reduxjs/toolkit";
 import { getMultipleData } from "./d365ce";
 
+/**
+ * @module store
+ */
+
 const editorSlice = createSlice({
     name: "editor",
     initialState: {
@@ -46,6 +50,13 @@ export const {
   setAttribute,
   setRegardingObjectId
 } = editorSlice.actions;
+
+/**
+ * @typedef Template
+ * @property {string} id
+ * @property {string} subject
+ * @property {string} notetext
+ */
 
 /**
  * Gets all of the Templates from Annotations

@@ -11,6 +11,10 @@ import store, {
 } from "./store";
 import Editor from "../jsx/editor";
 
+/**
+ * @module d365EmailTemplate
+ */
+
 initializeIcons();
 
 let regardingObjectId = null;

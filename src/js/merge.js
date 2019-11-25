@@ -4,6 +4,10 @@ import HandlebarsIntl from "handlebars-intl";
 HandlebarsIntl.registerWith(Handlebars);
 
 /**
+ * @module merge
+ */
+
+/**
  * Merge the source with the data and returns an html string
  * @param {string} source
  * @param {Object} data

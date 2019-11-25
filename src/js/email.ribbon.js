@@ -5,6 +5,14 @@ import get from "lodash/get";
 
 import { isV9 } from "./d365ce";
 
+/**
+ * @module email.ribbon
+ */
+
+/**
+ * Opens the d365 Email Template html
+ * @param {Object} primaryControl
+ */
 export function openD365EmailTemplate(primaryControl) {
   try {
     const wrName = "vm_d365EmailTemplate.html",
@@ -24,10 +32,9 @@ export function openD365EmailTemplate(primaryControl) {
           );
 
     if (lookup) {
-      const { id, typename } = lookup,
-        regardingObjectId = {
-          id: id.replace(/[{}]/g, ""),
-          logicalName: typename
+      const regardingObjectId = {
+          id: lookup.id.replace(/[{}]/g, ""),
+          logicalName: lookup.typename || lookup.entityType
         },
         par = encodeURIComponent(
           `regardingObjectId=${JSON.stringify(regardingObjectId)}`

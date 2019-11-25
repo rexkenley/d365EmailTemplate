@@ -3,7 +3,12 @@ import get from "lodash/get";
 import isUUID from "validator/lib/isUUID";
 
 /**
- * @const {Boolean}
+ * @module d365ce
+ */
+
+/**
+ * d365 is v9
+ * @const {boolean}
  */
 export const isV9 = !!Xrm.WebApi;
 
@@ -20,9 +25,25 @@ const { getClientUrl } = isV9
   };
 
 /**
+ * @typedef {Object} MetaAttribute
+ * @property {string} metadataId
+ * @property {string} displayName
+ * @property {string} logicalName
+ * @property {string} attributeType
+ */
+
+/**
+ * @typedef {Object} MetaEntity
+ * @property {string} metadataId
+ * @property {string} displayName
+ * @property {string} entitySetName
+ * @property {MetaAttribute[]} attributes
+ */
+
+/**
  * Gets the metadata of the listed entities
- * @param  {...string} entities
- * @return {Promise<Object>}
+ * @param  {...string} entities - list of entity names
+ * @return {Promise<MetaEntity[]>}
  */
 export async function getMetaData(...entities) {
   try {
@@ -76,15 +97,19 @@ export async function getMetaData(...entities) {
 }
 
 /**
+ * Format Value options
  * @const {Object}
+ * @property {int} both - includes both formatted and value of attributes
+ * @property {int} formatOnly - sets attribute to formatted
+ * @property {int} valueOnly - sets attribute to value
  */
 export const FormatValue = { both: 0, formatOnly: 1, valueOnly: 2 };
 
 /**
  * Formats the object to a more standard format
- * @param {Object} obj
- * @param {number} formatValue
- * @returns {Object}
+ * @param {Object} obj - the object returned by d365
+ * @param {int} formatValue - FormatValue
+ * @returns {Object?}
  */
 export function formatObject(obj, formatValue = FormatValue.both) {
   try {
@@ -161,7 +186,7 @@ export function formatObject(obj, formatValue = FormatValue.both) {
  * Retrieves a single entity record
  * @param {string} logicalName
  * @param {string} id
- * @return {Promise<Object>}
+ * @return {Promise<Object?>}
  */
 export async function getEntityData(logicalName, id) {
   try {
@@ -203,7 +228,7 @@ export async function getEntityData(logicalName, id) {
  * Gets multiple records based on odata
  * @param {string} logicalName
  * @param {string} oData
- * @return {Promise<Object[]>}
+ * @return {Promise<Object[]?>}
  */
 export async function getMultipleData(logicalName, oData) {
   try {
@@ -245,7 +270,7 @@ export async function getMultipleData(logicalName, oData) {
  * Saves a single entity record
  * @param {string} logicalName
  * @param {Object} entity
- * @return {Promise<Object>}
+ * @return {Promise<Object?>}
  */
 export async function saveEntityData(logicalName, entity) {
   try {
