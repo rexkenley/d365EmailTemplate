@@ -24,7 +24,7 @@
     "template"
   ],
   "author": "Rex Kenley Tan",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@babel/runtime-corejs3": "^7.6.3",
     "@reduxjs/toolkit": "^1.0.4",
