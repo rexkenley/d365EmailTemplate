@@ -9,7 +9,7 @@ import store, {
   setEntity,
   setRegardingObjectId
 } from "../src/js/store";
-import ET, { setDescription } from "../src/jsx/editorPAC";
+import ET, { getMetaData, setDescription } from "../src/jsx/editorPAC";
 
 export class EmailTemplate
   implements ComponentFramework.StandardControl<IInputs, IOutputs> {
@@ -48,7 +48,18 @@ export class EmailTemplate
 		https://docs.microsoft.com/en-us/powerapps/developer/component-framework/reference/resources
 		https://docs.microsoft.com/en-us/powerapps/developer/component-framework/reference/utility
 		https://docs.microsoft.com/en-us/powerapps/developer/component-framework/reference/webapi
-		
+
+		https://community.dynamics.com/crm/f/microsoft-dynamics-crm-forum/294433/metadata-call-in-d365-using-webapi-in-javascript?pifragment-97030=1#responses
+		https://docs.microsoft.com/en-us/powerapps/developer/model-driven-apps/clientapi/reference/xrm-utility/getentitymetadata
+		https://docs.microsoft.com/en-us/powerapps/developer/model-driven-apps/clientapi/reference/xrm-webapi/online/execute
+		https://docs.microsoft.com/en-us/powerapps/developer/model-driven-apps/clientapi/reference/xrm-webapi/online/executemultiple
+
+		https://sachinbansal.blog/2018/04/27/xrm-webapi-new-api-dynamics-365-v9/
+		https://community.dynamics.com/crm/f/microsoft-dynamics-crm-forum/294433/metadata-call-in-d365-using-webapi-in-javascript?pifragment-97030=1#responses
+		https://balugajjala.wordpress.com/2017/05/11/retrieve-all-entities-metadata/
+		https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.messages.retrieveentityrequest?view=dynamics-general-ce-9
+		https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.messages.retrieveattributerequest?view=dynamics-general-ce-9
+		https://carldesouza.com/dynamics-365-get-entity-metadata-using-c/
 
         const meta = await getMetaData(
           "account",
@@ -84,20 +95,16 @@ export class EmailTemplate
         // Add control initialization code
         ReactDOM.render(
           // @ts-ignore
-          React.createElement(
-            ET,
-
-            {
-              // @ts-ignore
-              store,
-              initialValue,
-              onHTMLChange: (content, editor) => {
-                this.current = content;
-                this.updatedByReact = true;
-                this.notifyOutputChanged();
-              }
+          React.createElement(ET, {
+            // @ts-ignore
+            store,
+            initialValue,
+            onHTMLChange: (content, editor) => {
+              this.current = content;
+              this.updatedByReact = true;
+              this.notifyOutputChanged();
             }
-          ),
+          }),
           this.container
         );
       };
