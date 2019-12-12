@@ -109,9 +109,11 @@ export const setDescription = description => {
  * @param  {...string} entities - list of entity names
  * @return {Promise<MetaEntity[]>}
  */
-export async function getMetaData(...entities) {
+export async function getMetaData(context, ...entities) {
   try {
     if (!entities || !entities.length) return [];
+
+    console.log("getMetaData");
 
     const metas = {},
       requests = [];
@@ -120,33 +122,42 @@ export async function getMetaData(...entities) {
       requests.push({
         EntityFilters: 2,
         LogicalName: e,
-        RetrieveAsIfPublished: true,
-        getMetadata: () => ({
-          boundParameter: null,
-          operationType: 1,
-          operationName: "RetrieveEntityRequest",
-          parameterTypes: {
-            EntityFilters: {
-              typeName: "Microsoft.Dynamics.CRM.EntityFilters",
-              structuralProperty: 0
-            },
-            LogicalName: {
-              typeName: "Edm.String",
-              structuralProperty: 0
-            },
-            RetrieveAsIfPublished: {
-              typeName: "Edm.Boolean",
-              structuralProperty: 0
+        RetrieveAsIfPublished: false,
+        getMetadata() {
+          return {
+            boundParameter: null,
+            operationType: 1,
+            operationName: "RetrieveEntityRequest",
+            parameterTypes: {
+              EntityFilters: {
+                typeName: "Microsoft.Dynamics.CRM.EntityFilters",
+                structuralProperty: 0
+              },
+              LogicalName: {
+                typeName: "Edm.String",
+                structuralProperty: 1
+              },
+              RetrieveAsIfPublished: {
+                typeName: "Edm.Boolean",
+                structuralProperty: 1
+              }
             }
-          }
-        })
+          };
+        }
       });
     });
 
-    const result = await context.WebApi.online.executeMultiple(requests),
+    console.log(`Requests: ${JSON.stringify(requests)}`);
+
+    const result = await context.webAPI.executeMultiple(requests),
       json = result && (await result.json());
 
+    console.log(`JSON: ${JSON.stringify(json)}`);
+
     /*
+
+
+
       metas[e] = {
         metadataId: get(json, "MetadataId", ""),
         displayName: get(json, "DisplayName.LocalizedLabels[0].Label", ""),
