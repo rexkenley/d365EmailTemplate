@@ -1,3 +1,4 @@
+/* global Xrm */
 import React, { useState } from "react";
 import { Provider, useSelector, useDispatch } from "react-redux";
 import { Fabric } from "office-ui-fabric-react/lib/Fabric";
@@ -12,6 +13,8 @@ import {
   PrimaryButton,
   DefaultButton
 } from "office-ui-fabric-react/lib/Button";
+import { Modal } from "office-ui-fabric-react/lib/Modal";
+import get from "lodash/get";
 
 import { setTemplate } from "../js/store";
 import getCBItems from "../js/editorCommandBar";
@@ -23,8 +26,10 @@ import TinyEditor from "./tinyMCEPAC";
  */
 
 const tinyEditor = React.createRef(),
-  Editor = (store, initialValue, onHTMLChange) => {
-    const [templateName, setTemplateName] = useState(""),
+  tinyTemplate = React.createRef(),
+  Editor = (initialValue, onHTMLChange) => {
+    const [showTemplate, setShowTemplate] = useState(false),
+      [templateName, setTemplateName] = useState(""),
       dispatch = useDispatch(),
       meta = useSelector(state => state.meta),
       entity = useSelector(state => state.entity),
@@ -38,8 +43,22 @@ const tinyEditor = React.createRef(),
       };
 
     return (
-      <Provider store={store}>
-        <Fabric>
+      <Fabric>
+        <TinyEditor
+          ref={tinyEditor}
+          initialValue={initialValue}
+          onHTMLChange={onHTMLChange}
+          onTemplatesAction={() => {
+            setShowTemplate(true);
+          }}
+        />
+        <Modal
+          isOpen={showTemplate}
+          onDismiss={() => {
+            setShowTemplate(false);
+          }}
+          isModeless={true}
+        >
           <CommandBar
             items={getCBItems(
               tinyEditor,
@@ -51,12 +70,7 @@ const tinyEditor = React.createRef(),
               regardingObjectId
             )}
           />
-          <TinyEditor
-            ref={tinyEditor}
-            disabled={!template}
-            initialValue={initialValue}
-            onHTMLChange={onHTMLChange}
-          />
+          <TinyEditor ref={tinyTemplate} disabled={!template} />
           <Dialog
             hidden={!entity || !template || template.subject}
             dialogContentProps={{
@@ -89,12 +103,19 @@ const tinyEditor = React.createRef(),
               <DefaultButton onClick={dismiss} text="Cancel" />
             </DialogFooter>
           </Dialog>
-        </Fabric>
+        </Modal>
+      </Fabric>
+    );
+  },
+  EditorPAC = (store, initialValue, onHTMLChange) => {
+    return (
+      <Provider store={store}>
+        <Editor initialValue={initialValue} onHTMLChange={onHTMLChange} />
       </Provider>
     );
   };
 
-export default Editor;
+export default EditorPAC;
 
 export const setDescription = description => {
   try {
@@ -115,48 +136,29 @@ export async function getMetaData(context, ...entities) {
 
     console.log("getMetaData");
 
-    const metas = {},
-      requests = [];
+    const globalContext = Xrm.Utility.getGlobalContext(),
+      apiVersion = "9.1",
+      headers = {
+        "OData-MaxVersion": "4.0",
+        "OData-Version": "4.0",
+        Accept: "application/json",
+        "Content-Type": "application/json; charset=utf-8",
+        Prefer: `odata.include-annotations="*"` // eslint-disable-line
+      },
+      metas = {};
 
-    entities.forEach(e => {
-      requests.push({
-        EntityFilters: 2,
-        LogicalName: e,
-        RetrieveAsIfPublished: false,
-        getMetadata() {
-          return {
-            boundParameter: null,
-            operationType: 1,
-            operationName: "RetrieveEntityRequest",
-            parameterTypes: {
-              EntityFilters: {
-                typeName: "Microsoft.Dynamics.CRM.EntityFilters",
-                structuralProperty: 0
-              },
-              LogicalName: {
-                typeName: "Edm.String",
-                structuralProperty: 1
-              },
-              RetrieveAsIfPublished: {
-                typeName: "Edm.Boolean",
-                structuralProperty: 1
-              }
-            }
-          };
-        }
-      });
-    });
-
-    console.log(`Requests: ${JSON.stringify(requests)}`);
-
-    const result = await context.webAPI.executeMultiple(requests),
-      json = result && (await result.json());
-
-    console.log(`JSON: ${JSON.stringify(json)}`);
-
-    /*
-
-
+    // eslint-disable-next-line
+    for (const e of entities) {
+      // eslint-disable-next-line
+      const result = await fetch(
+          `${globalContext.getClientUrl()}/api/data/${apiVersion}/EntityDefinitions(LogicalName='${e}')` +
+            `?$select=LogicalName,DisplayName,EntitySetName&$expand=Attributes($select=LogicalName,DisplayName,AttributeType;$filter=IsValidForForm eq true)`,
+          {
+            method: "GET",
+            headers
+          }
+        ),
+        json = result && (await result.json()); // eslint-disable-line
 
       metas[e] = {
         metadataId: get(json, "MetadataId", ""),
@@ -171,8 +173,9 @@ export async function getMetaData(context, ...entities) {
             attributeType: get(a, "AttributeType", "")
           }))
       };
-      */
+    }
 
+    console.log(JSON.stringify(metas));
     return metas;
   } catch (e) {
     console.error(e.message || e);
