@@ -61,7 +61,7 @@ export class EmailTemplate
 		https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.messages.retrieveattributerequest?view=dynamics-general-ce-9
 		https://carldesouza.com/dynamics-365-get-entity-metadata-using-c/
 
-        
+                
 
         store.dispatch(setMeta(meta));
         await store.dispatch(getTemplates());
@@ -80,6 +80,7 @@ export class EmailTemplate
           store.dispatch(setEntity("global"));
 		}
     */
+
         const meta = await getMetaData(
           context,
           "account",
@@ -117,7 +118,7 @@ export class EmailTemplate
     this.updatedByReact = false;
 
     initializeIcons();
-    run();
+    //run();
   }
 
   /**
