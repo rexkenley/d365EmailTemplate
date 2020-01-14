@@ -2,7 +2,7 @@
 
 A d365 CE package that would allow users to create visually rich email templates.
 
-*Currently working on the pcf version of this product. Please let me know if any of my changes break current functionality. Thank you.*
+*Please use this [commit](https://github.com/rexkenley/d365EmailTemplate/tree/8814124537920d0ca921a040f037910dd309ada7). I decided to create the pcf version as a sepearate project.*
 
 ## Installation
 
