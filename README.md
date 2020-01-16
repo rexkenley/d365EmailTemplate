@@ -2,8 +2,6 @@
 
 A d365 CE package that would allow users to create visually rich email templates.
 
-*Currently working on the pcf version of this contro. Please let me know if any of my changes break current functionality. Thank you.*
-
 ## Installation
 
 1. Install [NodeJS](https://nodejs.org/en/)
