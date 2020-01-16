@@ -26,7 +26,7 @@ import get from "lodash/get";
 
 const TinyEditor = React.forwardRef((props, ref) => {
   // @ts-ignore
-  const { disabled, initialValue, onHTMLChange, onTemplatesAction } = props,
+  const { disabled, initialValue, onHTMLChange } = props,
     editorHeight = window.innerHeight - 80,
     fpCB = cb => {
       const input = document.createElement("input");
@@ -82,9 +82,7 @@ const TinyEditor = React.forwardRef((props, ref) => {
           },
           insert: {
             title: "Insert",
-            items: `image link media codesample | charmap emoticons hr ${
-              onTemplatesAction ? "templates" : ""
-            }`.trim()
+            items: "image link media codesample | charmap emoticons hr"
           },
           format: {
             title: "Format",
@@ -96,14 +94,6 @@ const TinyEditor = React.forwardRef((props, ref) => {
             items: "inserttable tableprops deletetable row column cell"
           },
           help: { title: "Help", items: "help" }
-        },
-        setup: editor => {
-          if (!onTemplatesAction) return;
-
-          editor.ui.registry.addMenuItem("templates", {
-            text: "Templates",
-            onAction: onTemplatesAction
-          });
         },
         autoresize_on_init: true,
         autoresize_bottom_margin: 80,
