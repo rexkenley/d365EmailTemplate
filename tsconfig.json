@@ -1,7 +1,0 @@
-{
-  "extends": "./node_modules/pcf-scripts/tsconfig_base.json",
-  "compilerOptions": {
-    "noImplicitAny": false,
-    "typeRoots": ["node_modules/@types"]
-  }
-}
