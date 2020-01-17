@@ -49,6 +49,3 @@ A d365 CE package that would allow users to create visually rich email templates
 - [Handlebars](https://handlebarsjs.com/) - the templating engine used in this project
 - [Handlebars Intl](https://formatjs.io/handlebars/) - Handlebars "helper" that formats the date
 
-## Security Status
-[Snyk Report](https://snyk.io/test/github/rexkenley/d365EmailTemplate?tab=issues)
-- **11/25/2019 Medium Severity: Denial of Service (DoS)** The [npm-check](https://github.com/dylang/npm-check) is the package used to help maintain the versions of various packages used in this project. It is not used in the execution of project code. But if you prefer not having it, run `npm remove npm-check`. You can use `npm update` as an alternative.
