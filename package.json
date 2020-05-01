@@ -15,7 +15,9 @@
     "build:d365EmailTemplate:prd": "%npm_package_scripts_buildPrdForm% src\\js\\d365EmailTemplate.js -o dist\\d365EmailTemplate.js && npx pug src\\pug\\d365EmailTemplate.pug -o dist",
     "build:email:prd": "%npm_package_scripts_buildPrdForm% src\\js\\email.ribbon.js -o dist\\email.ribbon.js",
     "test": "npx jest --verbose ./test",
-    "docs": "npx jsdoc -c jsdoc.json"
+    "docs": "npx jsdoc -c jsdoc.json",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "keywords": [
     "d365",
@@ -48,7 +50,8 @@
     "validator": "^12.0.0",
     "webpack": "^4.41.2",
     "webpack-bundle-analyzer": "^3.6.0",
-    "webpack-merge": "^4.2.2"
+    "webpack-merge": "^4.2.2",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "@babel/core": "^7.6.4",
@@ -71,5 +74,6 @@
     "pug-cli": "^1.0.0-alpha6",
     "style-loader": "^1.0.0",
     "webpack-cli": "^3.3.9"
-  }
+  },
+  "snyk": true
 }
