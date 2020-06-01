@@ -43,7 +43,7 @@
     "react-redux": "^7.1.1",
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",
-    "terser-webpack-plugin": "^2.2.1",
+    "terser-webpack-plugin": "^2.3.6",
     "tinymce": "^5.1.1",
     "validator": "^12.0.0",
     "webpack": "^4.41.2",
